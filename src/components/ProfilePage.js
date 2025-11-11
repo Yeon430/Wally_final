@@ -100,31 +100,55 @@ function ProfilePage() {
 
   // 프로필 저장
   const handleSaveProfile = async () => {
-    if (!user) return;
+    if (!user) {
+      alert('로그인이 필요합니다.');
+      return;
+    }
+
+    if (!nickname.trim()) {
+      alert('닉네임을 입력해주세요.');
+      return;
+    }
 
     setSaving(true);
     try {
-      let avatarUrl = profileImageUrl;
+      let avatarUrl = profileImageUrl || currentProfileImage;
 
-      // 새 이미지가 선택되었고 data URL인 경우
-      if (fileInputRef.current?.files?.[0] && profileImageUrl?.startsWith('data:')) {
-        const uploadedUrl = await uploadProfileImage(fileInputRef.current.files[0]);
+      // 새 이미지 파일이 선택된 경우에만 업로드 시도
+      const selectedFile = fileInputRef.current?.files?.[0];
+      if (selectedFile && profileImageUrl?.startsWith('data:')) {
+        console.log('Uploading new profile image...');
+        const uploadedUrl = await uploadProfileImage(selectedFile);
         if (uploadedUrl) {
           avatarUrl = uploadedUrl;
+          console.log('Image uploaded successfully:', uploadedUrl);
+        } else {
+          console.warn('Image upload failed, using existing image');
+          // 업로드 실패 시 기존 이미지 유지
+          avatarUrl = currentProfileImage;
         }
-        // 업로드 실패해도 data URL 사용
+      } else if (!profileImageUrl || profileImageUrl === currentProfileImage) {
+        // 이미지가 변경되지 않은 경우 기존 이미지 유지
+        avatarUrl = currentProfileImage;
       }
 
+      console.log('Updating user profile:', { nickname, avatarUrl });
+
       // Supabase user metadata 업데이트
-      const { error } = await supabase.auth.updateUser({
+      const { data: updatedUser, error } = await supabase.auth.updateUser({
         data: {
-          name: nickname,
-          nickname: nickname,
+          name: nickname.trim(),
+          nickname: nickname.trim(),
           avatar_url: avatarUrl
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase updateUser error:', error);
+        throw error;
+      }
+
+      console.log('Profile updated successfully:', updatedUser);
 
       // 성공 메시지
       alert('프로필이 업데이트되었습니다!');
@@ -134,7 +158,8 @@ function ProfilePage() {
       window.location.reload();
     } catch (error) {
       console.error('Error updating profile:', error);
-      alert('프로필 업데이트 중 오류가 발생했습니다.');
+      const errorMessage = error.message || '알 수 없는 오류가 발생했습니다.';
+      alert(`프로필 업데이트 중 오류가 발생했습니다: ${errorMessage}`);
     } finally {
       setSaving(false);
     }
