@@ -174,7 +174,8 @@ function ProfilePage() {
         </svg>
       ),
       label: 'Language',
-      value: 'English'
+      value: 'English',
+      showArrow: false
     }
   ];
 
@@ -219,21 +220,29 @@ function ProfilePage() {
     }
   ];
 
-  const MenuItem = ({ icon, label, value, onClick }) => (
-    <button
-      onClick={onClick}
-      className="w-full flex items-center justify-between py-4 px-5 hover:bg-gray-50 transition-colors"
-    >
-      <div className="flex items-center gap-3">
-        <div className="text-gray-700">{icon}</div>
-        <span className="text-sm font-medium text-gray-900">{label}</span>
-        {value && <span className="text-sm text-gray-500 ml-2">({value})</span>}
-      </div>
-      <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-      </svg>
-    </button>
-  );
+  const MenuItem = ({ icon, label, value, onClick, showArrow = true }) => {
+    const isDisabled = !onClick;
+    return (
+      <button
+        onClick={onClick}
+        disabled={isDisabled}
+        className={`w-full flex items-center ${showArrow ? 'justify-between' : ''} py-4 px-5 transition-colors ${
+          isDisabled ? 'cursor-default' : 'hover:bg-gray-50'
+        }`}
+      >
+        <div className="flex items-center gap-3">
+          <div className={isDisabled ? 'text-gray-400' : 'text-gray-700'}>{icon}</div>
+          <span className={`text-sm font-medium ${isDisabled ? 'text-gray-400' : 'text-gray-900'}`}>{label}</span>
+          {value && <span className={`text-sm ml-2 ${isDisabled ? 'text-gray-400' : 'text-gray-500'}`}>({value})</span>}
+        </div>
+        {showArrow && (
+          <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+          </svg>
+        )}
+      </button>
+    );
+  };
 
   const Section = ({ title, items }) => (
     <div className="mb-6">
