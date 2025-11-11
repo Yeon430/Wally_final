@@ -136,27 +136,26 @@ function DailySpendingPage({ transactions = [], selectedDate, onBack, currentDay
   })).sort((a, b) => b.amount - a.amount);
 
   return (
-    <div className="p-6 pb-24 min-h-screen">
+    <div className="pb-24 min-h-screen">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="mb-6 pl-6 pr-6 pt-6">
         <button
           onClick={() => {
             if (onBack && typeof onBack === 'function') {
               onBack(null);
             }
           }}
-          className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors"
+          className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors mb-6"
         >
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M12 4L6 10L12 16" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </button>
-        <h1 className="text-xl font-bold text-black">Daily Spending</h1>
-        <div className="w-10 h-10"></div>
+        <h1 className="text-2xl font-bold text-black">Daily Spending</h1>
       </div>
 
       {/* Week Days */}
-      <div className="mb-6">
+      <div className="mb-6 px-6">
         <div className="grid grid-cols-7 gap-2">
           {weekDays.map((day, index) => {
             const date = weekDates[index];
@@ -204,14 +203,14 @@ function DailySpendingPage({ transactions = [], selectedDate, onBack, currentDay
       </div>
 
       {/* Categories Section */}
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-black mb-4">Categories</h2>
+      <div className="mb-6 px-6">
+        <h2 className="text-xl font-bold text-black mb-4">Categories</h2>
         <div className="grid grid-cols-3 gap-3">
           {allCategories.slice(0, 3).map(({ category, amount, colorInfo }) => {
             return (
               <div
                 key={category}
-                className="rounded-3xl p-4 flex flex-col items-center justify-center"
+                className="rounded-[12px] p-4 flex flex-col items-center justify-center"
                 style={{ 
                   backgroundColor: colorInfo.bg,
                   minHeight: '100px'
@@ -226,7 +225,7 @@ function DailySpendingPage({ transactions = [], selectedDate, onBack, currentDay
       </div>
 
       {/* Today's Transactions */}
-      <div className="mb-6">
+      <div className="mb-6 px-6">
         <h2 className="text-xl font-bold text-black mb-4">Today's Transactions</h2>
         <div className="space-y-4">
           {Object.entries(groupedTransactions).map(([timeOfDay, txns]) => (
@@ -240,7 +239,7 @@ function DailySpendingPage({ transactions = [], selectedDate, onBack, currentDay
                       className="transaction-card group"
                       style={{
                         background: '#F8F8F8',
-                        borderRadius: '16px',
+                        borderRadius: '12px',
                         padding: '16px',
                         position: 'relative'
                       }}
@@ -278,8 +277,8 @@ function DailySpendingPage({ transactions = [], selectedDate, onBack, currentDay
       </div>
 
       {/* Add Transaction Button */}
-      <div className="mt-8">
-        <button className="w-full bg-black text-white py-4 rounded-full font-medium hover:bg-gray-800 transition-colors">
+      <div className="mt-8 px-6">
+        <button className="w-full bg-black text-white py-4 rounded-[12px] font-medium hover:bg-gray-800 transition-colors">
           Add a transaction
         </button>
       </div>

@@ -59,12 +59,15 @@ function ChatPage({ transactions }) {
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
+  const messagesContainerRef = useRef(null);
   const savedMessageIdsRef = useRef(new Set()); // Track saved message IDs to prevent duplicate saves
   const profileRefs = useRef({});
   const infoCardRef = useRef(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    }
   };
   const updateInfoCardPosition = (aiId) => {
     const targetId = aiId || activeProfileInfo;
@@ -1243,45 +1246,66 @@ User message: ${userMessage}`;
   };
 
   return (
-    <div className="h-full flex flex-col pb-20">
+    <>
+      <style>{`
+        .chat-messages-container::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
+      <div className="h-full flex flex-col pb-20 overflow-hidden">
       {/* Chat Header */}
-      <div className="p-6 pb-4 border-b border-gray-100">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-3">
-            {Object.values(AI_CONFIG).map((ai) => {
-              const isInfoActive = activeProfileInfo === ai.id;
-              const isEnabled = aiEnabled[ai.id];
-              return (
-                <div key={ai.id} className="relative" data-ai-profile>
-                  <button
-                    ref={(el) => {
-                      profileRefs.current[ai.id] = el;
-                    }}
-                    onClick={() => setActiveProfileInfo(prev => prev === ai.id ? null : ai.id)}
-                    className={`w-12 h-12 rounded-full bg-gradient-to-br ${ai.gradient} flex items-center justify-center transition-all relative ${
-                      isEnabled ? 'opacity-100 ring-2 ring-black ring-offset-2' : 'opacity-30 hover:opacity-50'
-                    }`}
-                    title={ai.name}
-                  >
-                    <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center overflow-hidden">
-                      <img
-                        src={ai.avatar}
-                        alt={ai.name}
-                        className="w-full h-full object-cover"
-                      />
+      <div className="p-6 pb-4 bg-black border-b border-gray-800 rounded-b-[16px]">
+        <div className="flex items-start gap-4 mb-4">
+          {/* Star/Fan Icon */}
+          <div className="flex-shrink-0">
+            <img src="/image.png" alt="Chat Room Icon" className="w-10 h-10 brightness-0 invert" />
+          </div>
+          
+          {/* Text Section */}
+          <div className="flex-1">
+            <h2 className="text-xl font-bold text-white mb-1">Chat Room</h2>
+            <p className="text-sm text-white/90">
+              {Object.values(AI_CONFIG).filter(ai => aiEnabled[ai.id]).map(ai => ai.name).join(' & ')}
+            </p>
+          </div>
+        </div>
+        
+        {/* Small Profile Avatars */}
+        <div className="flex items-center gap-2">
+          {Object.values(AI_CONFIG).map((ai) => {
+            const isInfoActive = activeProfileInfo === ai.id;
+            const isEnabled = aiEnabled[ai.id];
+            return (
+              <div key={ai.id} className="relative" data-ai-profile>
+                <button
+                  ref={(el) => {
+                    profileRefs.current[ai.id] = el;
+                  }}
+                  onClick={() => setActiveProfileInfo(prev => prev === ai.id ? null : ai.id)}
+                  className={`w-10 h-10 rounded-full border-2 border-white flex items-center justify-center transition-all relative overflow-hidden ${
+                    isEnabled ? 'opacity-100' : 'opacity-30 hover:opacity-50'
+                  }`}
+                  title={ai.name}
+                >
+                  <img
+                    src={ai.avatar}
+                    alt={ai.name}
+                    className="w-full h-full object-cover rounded-full"
+                  />
+                  {!isEnabled && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                      <div className="w-6 h-0.5 bg-white rotate-45"></div>
                     </div>
-                    {!isEnabled && (
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="w-8 h-0.5 bg-black rotate-45"></div>
-                      </div>
-                    )}
-                    {isInfoActive && (
-                      <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-black"></span>
-                    )}
-                  </button>
-                </div>
-              );
-            })}
+                  )}
+                  {isInfoActive && (
+                    <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-white"></span>
+                  )}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+        
       {activeProfileInfo && infoCardStyles && (
         <div
           data-ai-info-card
@@ -1325,19 +1349,17 @@ User message: ${userMessage}`;
           </button>
         </div>
       )}
-      
-          </div>
-          <div>
-            <h2 className="text-xl font-medium text-black">Chat Room</h2>
-            <p className="text-sm text-black opacity-60">
-              {Object.values(AI_CONFIG).filter(ai => aiEnabled[ai.id]).map(ai => ai.name).join(' & ')}
-            </p>
-          </div>
-        </div>
       </div>
       
       {/* Chat Messages */}
-      <div className="flex-1 p-6 space-y-4 overflow-y-auto">
+      <div 
+        ref={messagesContainerRef} 
+        className="chat-messages-container flex-1 min-h-0 p-6 space-y-4 overflow-y-auto"
+        style={{
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none',
+        }}
+      >
         {loadingMessages ? (
           <div className="flex items-center justify-center h-full">
             <p className="text-gray-600">Loading messages...</p>
@@ -1412,12 +1434,12 @@ User message: ${userMessage}`;
             onChange={(e) => setInputMessage(e.target.value)}
             onKeyPress={handleKeyPress}
             disabled={isLoading}
-            className="flex-1 bg-gray-100 rounded-full px-6 py-4 text-black placeholder-gray-400 border-none outline-none text-base disabled:opacity-50"
+            className="flex-1 bg-gray-100 rounded-lg px-6 py-4 text-black placeholder-gray-400 border-none outline-none text-base disabled:opacity-50"
           />
           <button 
             onClick={handleSendMessage}
             disabled={isLoading || !inputMessage.trim()}
-            className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed transition"
+            className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed transition"
             style={{
               background: isLoading || !inputMessage.trim() ? '#F7A9E0' : '#F35DC8'
             }}
@@ -1429,6 +1451,7 @@ User message: ${userMessage}`;
         </div>
       </div>
     </div>
+    </>
   );
 }
 

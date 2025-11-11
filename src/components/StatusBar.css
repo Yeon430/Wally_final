@@ -1,11 +1,18 @@
 .status-bar {
   height: 44px;
-  background: #ffffff;
   display: flex;
   align-items: flex-start;
   justify-content: center;
   position: relative;
   z-index: 1000;
+}
+
+.status-bar-white {
+  background: #ffffff;
+}
+
+.status-bar-pink {
+  background: #000000;
 }
 
 .status-bar-notch {

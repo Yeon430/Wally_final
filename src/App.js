@@ -7,6 +7,7 @@ import MoodPage from './components/MoodPage';
 import ProfilePage from './components/ProfilePage';
 import DailySpendingPage from './components/DailySpendingPage';
 import AuthPage from './components/AuthPage';
+import SplashScreen from './components/SplashScreen';
 import NavigationBar from './components/NavigationBar';
 import StatusBar from './components/StatusBar';
 import { supabase } from './lib/supabase';
@@ -19,6 +20,17 @@ function AppContent() {
   const [currentPage, setCurrentPage] = useState('spending');
   const [dailySpendingDate, setDailySpendingDate] = useState(null);
   const [dailySpendingStatuses, setDailySpendingStatuses] = useState(null);
+  const [showSplash, setShowSplash] = useState(true);
+  const [shouldShowTracker, setShouldShowTracker] = useState(false);
+
+  // 스플래시 스크린 표시 (새로고침할 때마다)
+  useEffect(() => {
+    // 스플래시 스크린을 3초간 표시한 후 AuthPage로 전환
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Load transactions from Supabase when user logs in
   useEffect(() => {
@@ -189,6 +201,11 @@ function AppContent() {
     }
   };
 
+  // 스플래시 스크린 표시
+  if (showSplash) {
+    return <SplashScreen />;
+  }
+
   if (loading || loadingData) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -209,6 +226,7 @@ function AppContent() {
     if (!isNaN(dayNumber) && dayNumber > 0 && dayNumber <= 31) {
       setDailySpendingDate(dayNumber);
       setDailySpendingStatuses(extra?.statusesByDay || null);
+      setShouldShowTracker(true); // Tracker에서 열렸음을 표시
     }
   };
 
@@ -218,6 +236,7 @@ function AppContent() {
     } else {
       setDailySpendingDate(null);
       setDailySpendingStatuses(null);
+      // shouldShowTracker는 유지하여 Tracker가 다시 열리도록 함
     }
   };
 
@@ -244,7 +263,7 @@ function AppContent() {
       case 'chat':
         return <ChatPage transactions={transactions} />;
       case 'analytics':
-        return <AnalyticsPage transactions={transactions} onDateClick={handleDateClick} />;
+        return <AnalyticsPage transactions={transactions} onDateClick={handleDateClick} autoOpenTracker={shouldShowTracker && dailySpendingDate === null} onTrackerOpened={() => setShouldShowTracker(false)} />;
       case 'mood':
         return <MoodPage transactions={transactions} />;
       case 'profile':
@@ -257,7 +276,7 @@ function AppContent() {
   return (
     <div className="app-container">
       <div className="phone-frame">
-        <StatusBar />
+        <StatusBar currentPage={currentPage} />
         <div className="phone-content">
           {renderPage()}
         </div>

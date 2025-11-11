@@ -18,7 +18,7 @@ const MONTH_LABELS = [
   'December',
 ];
 
-function AnalyticsPage({ transactions = [], onDateClick }) {
+function AnalyticsPage({ transactions = [], onDateClick, autoOpenTracker = false, onTrackerOpened }) {
   const { user } = useAuth();
   const [loadingSettings, setLoadingSettings] = useState(true);
   
@@ -33,8 +33,19 @@ function AnalyticsPage({ transactions = [], onDateClick }) {
     return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
   });
   const [startDateInput, setStartDateInput] = useState('');
-  const [activityView, setActivityView] = useState('tracker');
-  const [showTrackerDetail, setShowTrackerDetail] = useState(false);
+  const [activityView, setActivityView] = useState('monthly');
+  const [showTrackerDetail, setShowTrackerDetail] = useState(autoOpenTracker);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+
+  // Handle autoOpenTracker prop change
+  useEffect(() => {
+    if (autoOpenTracker) {
+      setShowTrackerDetail(true);
+      if (onTrackerOpened) {
+        onTrackerOpened();
+      }
+    }
+  }, [autoOpenTracker, onTrackerOpened]);
   
   // State for calendar month navigation
   const todayDate = new Date();
@@ -585,7 +596,7 @@ function AnalyticsPage({ transactions = [], onDateClick }) {
             <select
               value={currentMonth}
               onChange={(e) => setDisplayMonth(parseInt(e.target.value, 10))}
-              className="appearance-none bg-transparent pr-7 text-2xl font-bold text-black focus:outline-none cursor-pointer"
+              className="appearance-none bg-transparent pr-7 text-lg font-semibold text-black focus:outline-none cursor-pointer"
             >
               {MONTH_LABELS.map((label, monthIndex) => (
                 <option key={label} value={monthIndex}>
@@ -691,26 +702,10 @@ function AnalyticsPage({ transactions = [], onDateClick }) {
     if (monthOptions.length === 0) {
       return (
         <div className="space-y-4">
-          <div className="flex items-center justify-end gap-2">
-            <select
-              value={selectedYear}
-              onChange={(e) => setSelectedYear(parseInt(e.target.value, 10))}
-              className="bg-transparent text-black rounded-full text-sm font-medium px-4 py-2 focus:outline-none border-none"
-            >
-              {yearsAvailable.map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              ))}
-            </select>
-            <select
-              value={0}
-              onChange={() => {}}
-              className="bg-transparent text-black rounded-full text-sm font-medium px-4 py-2 focus:outline-none border-none opacity-60 cursor-not-allowed"
-              disabled
-            >
-              <option value={0}>No months available</option>
-            </select>
+          {/* Monthly Header */}
+          <div className="flex flex-col items-start gap-2 mb-4">
+            <LoadingIcon size={28} strokeWidth={2} />
+            <h2 className="text-3xl font-bold text-black">Monthly</h2>
           </div>
           <div className="bg-gray-50 rounded-lg p-4">
             <p className="text-sm font-semibold text-black">No months to display yet.</p>
@@ -801,69 +796,98 @@ function AnalyticsPage({ transactions = [], onDateClick }) {
 
     return (
       <div className="space-y-4">
-        <div className="text-left">
+        {/* Monthly Header */}
+        <div className="flex flex-col items-start gap-2 mb-4">
+          <LoadingIcon size={28} strokeWidth={2} />
+          <h2 className="text-3xl font-bold text-black">Monthly</h2>
+        </div>
+        
+        {/* Amount outside black background */}
+        <div className="text-left mb-4">
           <p className="text-4xl font-extrabold text-black tracking-tight">
             ${formatCurrency(selectedTotal)}
           </p>
         </div>
-        <div className="flex items-center gap-4 text-sm font-semibold text-gray-600">
-          <div className="relative">
-            <select
-              value={selectedYear}
-              onChange={(e) => setSelectedYear(parseInt(e.target.value, 10))}
-              className="appearance-none bg-transparent pr-6 focus:outline-none cursor-pointer"
-            >
-              {yearsAvailable.map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              ))}
-            </select>
-            <span className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-gray-500 text-[10px]">
-              ▼
-            </span>
+        
+        <div className="rounded-[16px] px-6 pt-6 pb-6 relative overflow-hidden bg-black">
+          <div className="flex items-center gap-4 text-sm font-semibold text-white/70 mb-4">
+            <div className="relative">
+              <select
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(parseInt(e.target.value, 10))}
+                className="appearance-none bg-transparent pr-6 focus:outline-none cursor-pointer text-white"
+              >
+                {yearsAvailable.map((year) => (
+                  <option key={year} value={year} className="bg-black text-white">
+                    {year}
+                  </option>
+                ))}
+              </select>
+              <span className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-white/60 text-[10px]">
+                ▼
+              </span>
+            </div>
+            <div className="relative">
+              <select
+                value={safeMonthIndex}
+                onChange={(e) => setSelectedMonthIndex(parseInt(e.target.value, 10))}
+                className="appearance-none bg-transparent pr-6 focus:outline-none cursor-pointer text-white"
+              >
+                {monthOptions.map((idx) => (
+                  <option key={idx} value={idx} className="bg-black text-white">
+                    {new Date(selectedYear, idx, 1).toLocaleString('en-US', { month: 'long' })}
+                  </option>
+                ))}
+              </select>
+              <span className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-white/60 text-[10px]">
+                ▼
+              </span>
+            </div>
           </div>
-          <div className="relative">
-            <select
-              value={safeMonthIndex}
-              onChange={(e) => setSelectedMonthIndex(parseInt(e.target.value, 10))}
-              className="appearance-none bg-transparent pr-6 focus:outline-none cursor-pointer"
-            >
-              {monthOptions.map((idx) => (
-                <option key={idx} value={idx}>
-                  {new Date(selectedYear, idx, 1).toLocaleString('en-US', { month: 'long' })}
-                </option>
-              ))}
-            </select>
-            <span className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-gray-500 text-[10px]">
-              ▼
-            </span>
-          </div>
+
+          {selectedTotal > 0 ? (
+            <>
+              {/* Pie Chart */}
+              <div className="flex justify-center">
+                <svg width={pieSize} height={pieSize} viewBox={`0 0 ${pieSize} ${pieSize}`}>
+                  {pieSlices.map((slice, index) => (
+                    <path
+                      key={index}
+                      d={slice.path}
+                      fill={slice.color}
+                      stroke="#ffffff"
+                      strokeWidth="2"
+                      className="cursor-pointer hover:opacity-80 transition-opacity"
+                      onClick={() => setSelectedCategory(slice.category)}
+                    />
+                  ))}
+                </svg>
+              </div>
+            </>
+          ) : (
+            <div className="bg-black/50 rounded-lg p-6 text-center">
+              <p className="text-sm text-white/70">
+                No spending recorded for this month yet.
+              </p>
+            </div>
+          )}
         </div>
 
-        {selectedTotal > 0 ? (
+        {selectedTotal > 0 && (
           <>
-            {/* Pie Chart */}
-            <div className="flex justify-center mb-6">
-              <svg width={pieSize} height={pieSize} viewBox={`0 0 ${pieSize} ${pieSize}`}>
-                {pieSlices.map((slice, index) => (
-                  <path
-                    key={index}
-                    d={slice.path}
-                    fill={slice.color}
-                    stroke="#ffffff"
-                    strokeWidth="2"
-                  />
-                ))}
-              </svg>
-            </div>
-
             {/* Category List */}
             <div className="space-y-2">
-              {sortedCategories.map((item, index) => (
+              {sortedCategories.map((item, index) => {
+                const isSelected = selectedCategory === item.category;
+                const categoryColor = categoryColors[item.category] || categoryColors.other;
+                return (
                 <div
                   key={item.category}
-                  className="flex items-center justify-between bg-gray-50 rounded-lg p-3"
+                  className={`flex items-center justify-between rounded-lg p-3 transition-colors cursor-pointer ${
+                    isSelected ? '' : 'bg-gray-50'
+                  }`}
+                  style={isSelected ? { backgroundColor: categoryColor } : {}}
+                  onClick={() => setSelectedCategory(isSelected ? null : item.category)}
                 >
                   <div className="flex items-center gap-3">
                     <div
@@ -883,15 +907,10 @@ function AnalyticsPage({ transactions = [], onDateClick }) {
                     </span>
                   </div>
                 </div>
-              ))}
+              );
+              })}
             </div>
           </>
-        ) : (
-          <div className="bg-gray-50 rounded-lg p-6 text-center">
-            <p className="text-sm text-gray-500">
-              No spending recorded for this month yet.
-            </p>
-          </div>
         )}
       </div>
     );
@@ -900,44 +919,58 @@ function AnalyticsPage({ transactions = [], onDateClick }) {
 
   if (showTrackerDetail) {
     return (
-      <div className="p-6 pb-24 min-h-screen space-y-6 bg-[#F8F9FB]">
-        <div className="flex items-center justify-between mb-4">
+      <>
+      <style>{`
+        .analytics-scroll-container::-webkit-scrollbar {
+          display: none;
+        }
+        .analytics-scroll-container {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
+      <div className="analytics-scroll-container h-full overflow-y-auto pb-24">
+        {/* Header */}
+        <div className="mb-6 pl-6 pr-6 pt-6">
           <button
             type="button"
             onClick={() => setShowTrackerDetail(false)}
-            className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors"
+            className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors mb-6"
             aria-label="Back to analytics"
           >
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M12 4L6 10L12 16" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </button>
-          <div className="flex flex-col items-center gap-3">
-            <div className="w-14 h-14 rounded-[18px] bg-black text-white flex items-center justify-center">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <path d="M12 3L13.6 9.4L20 11L13.6 12.6L12 19L10.4 12.6L4 11L10.4 9.4L12 3Z" fill="currentColor" />
-              </svg>
-            </div>
-            <p className="text-3xl font-semibold text-black tracking-tight">Tracker</p>
-          </div>
-          <div className="w-10 h-10" />
+          <h1 className="text-3xl font-bold text-black">Tracker</h1>
         </div>
  
-        <div className="bg-white rounded-[32px] p-6 shadow-sm">
+        <div className="px-6">
           {renderTrackerContent()}
         </div>
       </div>
+      </>
     );
   }
 
   return (
-    <div className="p-6 pb-24 min-h-screen space-y-6">
+    <>
+    <style>{`
+      .analytics-scroll-container::-webkit-scrollbar {
+        display: none;
+      }
+      .analytics-scroll-container {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+    `}</style>
+    <div className="analytics-scroll-container h-full overflow-y-auto p-6 pb-24 space-y-6">
       {/* Header */}
       <div className="-mx-6 -mt-6 px-6 pt-10">
-        <div className="flex justify-between items-start">
-          <div className="flex items-center gap-3">
+        <div className="flex justify-between items-end">
+          <div className="flex flex-col items-start gap-2">
             <LoadingIcon size={28} strokeWidth={2} />
-            <h1 className="text-2xl font-bold text-black">Budget Pulse</h1>
+            <h1 className="text-3xl font-bold text-black">Budget Pulse</h1>
           </div>
           <button 
             onClick={() => {
@@ -945,7 +978,7 @@ function AnalyticsPage({ transactions = [], onDateClick }) {
               setTargetInput(target.toString());
               setShowModal(true);
             }}
-            className="w-10 h-10 rounded-full bg-black text-white flex items-center justify-center hover:bg-gray-800 transition-colors flex-shrink-0"
+            className="w-10 h-10 rounded-full bg-black text-white flex items-center justify-center hover:bg-gray-800 transition-colors flex-shrink-0 mb-1"
           >
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
               <circle cx="6.25" cy="6.25" r="1.75" stroke="currentColor" strokeWidth="1.6" />
@@ -958,10 +991,10 @@ function AnalyticsPage({ transactions = [], onDateClick }) {
       </div>
 
       {/* Progress Section */}
-      <div className="rounded-[32px] px-6 pt-8 pb-10 relative overflow-hidden bg-black">
+      <div className="rounded-[16px] px-6 pt-8 pb-10 relative overflow-hidden bg-black">
         <div
           className="relative flex justify-center items-end mb-3 mx-auto"
-          style={{ height: '150px', width: '100%', maxWidth: '300px' }}
+          style={{ height: '150px', width: '100%', maxWidth: '300px', position: 'relative' }}
         >
           <svg viewBox="0 0 340 180" className="absolute bottom-0 w-full h-auto">
             <defs>
@@ -1013,22 +1046,21 @@ function AnalyticsPage({ transactions = [], onDateClick }) {
           
           <div
             className="absolute left-1/2 text-center w-full flex flex-col items-center"
-            style={{ top: '67%', transform: 'translate(-50%, -50%)' }}
+            style={{ top: '72%', transform: 'translate(-50%, -50%)' }}
           >
             <p className="text-xs text-white/70 mb-1">${totalExpenses.toFixed(2)} Spent</p>
-            <p className="text-5xl font-bold text-white mb-1">{spendingPercentage}%</p>
+            <p className="text-4xl font-bold text-white mb-1">{spendingPercentage}%</p>
             <p className="text-sm text-white/70">Target • ${target}</p>
           </div>
         </div>
         
         <div
-          className="flex justify-between text-xs text-white/60"
+          className="flex justify-between text-xs text-white/60 mx-auto"
           style={{
             width: '100%',
             maxWidth: '300px',
-            margin: '0 auto',
-            paddingLeft: '16px',
-            paddingRight: '16px',
+            paddingLeft: '0',
+            paddingRight: '0',
             boxSizing: 'border-box'
           }}
         >
@@ -1050,75 +1082,40 @@ function AnalyticsPage({ transactions = [], onDateClick }) {
             setActivityView('tracker');
             setShowTrackerDetail(true);
           }}
-          className="rounded-[20px] border border-gray-200 bg-white px-6 py-5 flex flex-col gap-6 text-left transition hover:border-black/30 focus:outline-none"
+          className="rounded-[12px] border border-gray-200 bg-white px-5 py-5 flex flex-col text-left transition hover:bg-[#FDF2F8] hover:border-black/30 focus:outline-none"
         >
-          <div className="flex items-start justify-between">
+          <div className="flex items-center justify-between mb-6">
             <p className="text-sm font-semibold text-gray-600">Daily Goal</p>
-            <span className="inline-flex items-center justify-center w-10 h-10 rounded-full border border-[#FACC15] text-[#FACC15] bg-white">
-              <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <span className="inline-flex items-center justify-center w-8 h-8 rounded-full border border-[#F35DC8] text-[#F35DC8] bg-white flex-shrink-0">
+              <svg width="14" height="14" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M4 10H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                 <path d="M12 6L16 10L12 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </span>
           </div>
-          <p className="text-3xl font-semibold text-black tracking-tight">
+          <p className="text-3xl font-semibold text-black tracking-tight mt-auto">
             ${formatCurrency(Number.isFinite(dailyGoal) ? dailyGoal : 0)}
           </p>
         </button>
 
-        <div className="rounded-[20px] border border-gray-200 bg-white px-6 py-5 flex flex-col gap-6">
-          <div className="flex items-start justify-between">
+        <div className="rounded-[12px] border border-gray-200 bg-white px-5 py-5 flex flex-col">
+          <div className="flex items-center justify-between mb-6">
             <p className="text-sm font-semibold text-gray-600">Current Streak</p>
-            <span className="inline-flex items-center justify-center w-10 h-10 rounded-full border border-[#34D399] text-[#34D399] bg-white">
-              <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <span className="inline-flex items-center justify-center w-8 h-8 rounded-full border border-[#F35DC8] text-[#F35DC8] bg-white">
+              <svg width="16" height="12" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ transform: 'scaleX(1.2)' }}>
                 <path d="M6 10L9 13L14 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </span>
           </div>
-          <p className="text-3xl font-semibold text-black tracking-tight">
+          <p className="text-3xl font-semibold text-black tracking-tight mt-auto">
             {goalStreak} {goalStreak === 1 ? 'day' : 'days'}
           </p>
         </div>
       </div>
 
       {/* Activity Section */}
-      <div className="bg-white rounded-[32px] p-6 shadow-sm -mx-6">
-        <div className="flex justify-center mb-6">
-          <div className="bg-gray-100 rounded-[18px] p-1 flex gap-1 w-full max-w-md">
-            <button
-              type="button"
-              onClick={() => setActivityView('tracker')}
-              className={`flex-1 rounded-[10px] px-4 py-2 text-sm font-semibold transition ${
-                activityView === 'tracker'
-                  ? 'bg-white text-black shadow'
-                  : 'text-gray-500 hover:text-black'
-              }`}
-            >
-              Tracker
-            </button>
-            <button
-              type="button"
-              onClick={() => setActivityView('monthly')}
-              className={`flex-1 rounded-[10px] px-4 py-2 text-sm font-semibold transition ${
-                activityView === 'monthly'
-                  ? 'bg-white text-black shadow'
-                  : 'text-gray-500 hover:text-black'
-              }`}
-            >
-              Monthly
-            </button>
-          </div>
-        </div>
-
-        {activityView === 'tracker' ? (
-          <>
-            {renderTrackerContent()}
-          </>
-        ) : (
-          <div className="mt-4">
-            {renderMonthlySpending()}
-          </div>
-        )}
+      <div className="bg-white rounded-[16px] p-6 shadow-sm -mx-6">
+        {renderMonthlySpending()}
       </div>
 
       {/* Target Goal Modal */}
@@ -1217,6 +1214,7 @@ function AnalyticsPage({ transactions = [], onDateClick }) {
       )}
 
     </div>
+    </>
   );
 }
 

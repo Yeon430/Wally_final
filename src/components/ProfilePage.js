@@ -1,44 +1,15 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import profileImage from '../assets/profile.jpg';
 
-function ProfilePage({ transactions = [] }) {
+function ProfilePage() {
   const { user, signOut } = useAuth();
 
   const handleLogout = async () => {
-    if (window.confirm('Are you sure you want to logout?')) {
+    if (window.confirm('로그아웃하시겠습니까?')) {
       await signOut();
     }
   };
-
-  const stats = useMemo(() => {
-    let daysActive = 1;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    if (user?.created_at) {
-      const createdDate = new Date(user.created_at);
-      createdDate.setHours(0, 0, 0, 0);
-      if (!isNaN(createdDate.getTime())) {
-        const diffTime = today - createdDate;
-        daysActive = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1);
-      }
-    } else if (transactions.length > 0) {
-      const firstTransaction = transactions[transactions.length - 1];
-      if (firstTransaction.created_at) {
-        const firstDate = new Date(firstTransaction.created_at);
-        firstDate.setHours(0, 0, 0, 0);
-        if (!isNaN(firstDate.getTime())) {
-          const diffTime = today - firstDate;
-          daysActive = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1);
-        }
-      }
-    }
-
-    return {
-      daysActive,
-      totalTransactions: transactions.length,
-    };
-  }, [user, transactions]);
 
   const displayName =
     user?.user_metadata?.name ||
@@ -46,124 +17,146 @@ function ProfilePage({ transactions = [] }) {
     user?.email?.split('@')[0] ||
     'Guest';
 
-  const menuItems = [
-    { icon: '👍', label: 'Rate us', helper: "It’s important for us" },
-    { icon: '🔔', label: 'Reminders', toggle: true },
-    { icon: '👥', label: 'Invite partner' },
-    { icon: '🕒', label: 'Gestational Age', action: 'Change' },
+  // Account 섹션 아이템
+  const accountItems = [
+    {
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+        </svg>
+      ),
+      label: 'Manage Profile'
+    },
+    {
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+        </svg>
+      ),
+      label: 'Password & Security'
+    },
+    {
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+        </svg>
+      ),
+      label: 'Notifications'
+    },
+    {
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+        </svg>
+      ),
+      label: 'Language',
+      value: 'English'
+    }
   ];
 
-  const infoLinks = [
-    'Join community',
-    'About us',
-    'Privacy statement',
-    'Privacy policy',
-    'Terms of use',
+  // Preferences 섹션 아이템
+  const preferencesItems = [
+    {
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+        </svg>
+      ),
+      label: 'About Us'
+    },
+    {
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+        </svg>
+      ),
+      label: 'Theme',
+      value: 'Light'
+    },
+    {
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+      ),
+      label: 'Appointments'
+    }
   ];
+
+  // Support 섹션 아이템
+  const supportItems = [
+    {
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      ),
+      label: 'Help Center'
+    }
+  ];
+
+  const MenuItem = ({ icon, label, value, onClick }) => (
+    <button
+      onClick={onClick}
+      className="w-full flex items-center justify-between py-4 px-5 hover:bg-gray-50 transition-colors"
+    >
+      <div className="flex items-center gap-3">
+        <div className="text-gray-700">{icon}</div>
+        <span className="text-sm font-medium text-gray-900">{label}</span>
+        {value && <span className="text-sm text-gray-500 ml-2">({value})</span>}
+      </div>
+      <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+      </svg>
+    </button>
+  );
+
+  const Section = ({ title, items }) => (
+    <div className="mb-6">
+      <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-1">
+        {title}
+      </h3>
+      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+        {items.map((item, index) => (
+          <div key={index}>
+            <MenuItem {...item} />
+            {index < items.length - 1 && <div className="border-t border-gray-100 mx-5" />}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-[#F5F5F5] px-6 pb-24 pt-8">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-semibold text-black">Profile</h1>
-        <button
-          onClick={handleLogout}
-          className="text-sm font-medium text-black bg-white border border-black/10 rounded-full px-4 py-2 hover:bg-black hover:text-white transition"
-        >
-          Logout
-        </button>
-      </div>
+    <div className="min-h-screen bg-gray-50 pb-24">
+      <div className="px-6 pt-4 pb-6">
+        <h1 className="text-xl font-semibold text-gray-900 text-center mb-6">Profile</h1>
 
-      <div className="space-y-4">
-        <div className="bg-white rounded-[28px] shadow-sm p-5 flex items-center justify-between">
+        {/* 프로필 카드 */}
+        <div className="bg-white rounded-2xl shadow-sm p-6 mb-6">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-3xl">
-              😺
+            <div className="w-16 h-16 rounded-full overflow-hidden flex-shrink-0">
+              <img 
+                src={profileImage} 
+                alt="Profile" 
+                className="w-full h-full object-cover"
+              />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-xl font-semibold text-black">{displayName}</h2>
-                <button className="text-xs text-black/50 underline">Edit</button>
-              </div>
-              <p className="text-sm text-black/60">{user?.email || 'No email connected'}</p>
+            <div className="flex-1">
+              <h2 className="text-lg font-semibold text-[#F35DC8] mb-1">{displayName}</h2>
+              <p className="text-sm text-gray-500">{user?.email || 'No email connected'}</p>
             </div>
-          </div>
-          <div className="text-right text-xs text-black/50">
-            <p>{stats.daysActive} days with Catty</p>
-            <p>{stats.totalTransactions} total logs</p>
           </div>
         </div>
 
-        <div className="bg-white rounded-[28px] shadow-sm divide-y divide-gray-100">
-          {menuItems.map((item, index) => (
-            <div
-              key={index}
-              className="px-5 py-4 flex items-center justify-between"
-            >
-              <div className="flex items-center gap-3 text-black">
-                <span className="text-lg">{item.icon}</span>
-                <div>
-                  <p className="text-sm font-semibold">{item.label}</p>
-                  {item.helper && (
-                    <p className="text-xs text-black/50">{item.helper}</p>
-                  )}
-                </div>
-              </div>
-              {item.toggle ? (
-                <div className="w-12 h-6 rounded-full bg-gray-200 relative">
-                  <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow" />
-                </div>
-              ) : item.action ? (
-                <button className="text-xs font-medium text-black/50">
-                  {item.action}
-                </button>
-              ) : null}
-            </div>
-          ))}
-        </div>
+        {/* Account 섹션 */}
+        <Section title="Account" items={accountItems} />
 
-        <div className="bg-white rounded-[28px] shadow-sm px-5 py-4 space-y-3">
-          {infoLinks.map((link) => (
-            <div
-              key={link}
-              className="flex items-center justify-between text-sm text-black"
-            >
-              <span>{link}</span>
-              <svg className="w-4 h-4 text-black/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-              </svg>
-            </div>
-          ))}
-        </div>
+        {/* Preferences 섹션 */}
+        <Section title="Preferences" items={preferencesItems} />
 
-        <div className="bg-white rounded-[28px] shadow-sm px-5 py-4 space-y-3">
-          <div className="flex items-center justify-between text-sm text-black">
-            <div className="flex items-center gap-2">
-              <span className="text-lg">✉️</span>
-              <span>Contact us</span>
-            </div>
-            <svg className="w-4 h-4 text-black/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-            </svg>
-          </div>
-          <div className="flex items-center justify-between text-sm text-black">
-            <div className="flex items-center gap-2">
-              <span className="text-lg">⚙️</span>
-              <span>Preferences</span>
-            </div>
-            <svg className="w-4 h-4 text-black/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-            </svg>
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-10 flex justify-center">
-        <button
-          onClick={handleLogout}
-          className="px-10 py-3 bg-black text-white rounded-full text-sm font-semibold hover:bg-gray-900 transition"
-        >
-          Sign out
-        </button>
+        {/* Support 섹션 */}
+        <Section title="Support" items={supportItems} />
       </div>
     </div>
   );

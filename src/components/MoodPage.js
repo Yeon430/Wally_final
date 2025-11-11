@@ -5,13 +5,21 @@ function MoodPage({ transactions = [] }) {
   const expenses = useMemo(() => transactions.filter((t) => t.type === 'expense'), [transactions]);
   const expensesWithMood = useMemo(() => expenses.filter((t) => t.mood), [expenses]);
 
-  const progressGradientStops = useMemo(
-    () => ({
-      start: '#FFE68A',
-      end: '#FF6B6B',
-    }),
-    []
-  );
+  // 픽셀 스타일 progress bar를 위한 블록 생성 함수
+  const createPixelBlocks = (percentage, blockSize = 5) => {
+    const blocks = [];
+    const numBlocks = Math.floor(percentage / blockSize);
+    const remainder = percentage % blockSize;
+    
+    for (let i = 0; i < numBlocks; i++) {
+      blocks.push(blockSize);
+    }
+    if (remainder > 0) {
+      blocks.push(remainder);
+    }
+    
+    return blocks;
+  };
 
   const moodStats = useMemo(() => {
     const base = {
@@ -53,9 +61,9 @@ function MoodPage({ transactions = [] }) {
   return (
     <div className="p-6 pb-24 min-h-screen relative">
       <div className="mb-6">
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col items-start gap-2 mb-2">
           <LoadingIcon size={28} strokeWidth={2} />
-          <h1 className="text-3xl font-semibold text-black mb-2">Mood Statistics</h1>
+          <h1 className="text-2xl font-bold text-black">Mood Statistics</h1>
         </div>
         <p className="text-sm text-gray-500">
           Track how your spending habits align with your feelings.
@@ -72,7 +80,7 @@ function MoodPage({ transactions = [] }) {
           return (
             <div
               key={moodKey}
-              className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100 cursor-pointer transition hover:shadow-md"
+              className="bg-white rounded-[12px] p-5 shadow-sm border border-gray-100 cursor-pointer transition hover:shadow-md"
               onClick={() => setSelectedMood(moodKey)}
             >
               <div className="flex items-center justify-between mb-4">
@@ -89,21 +97,22 @@ function MoodPage({ transactions = [] }) {
                 </div>
               </div>
 
-              <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
-                <div
-                  className="h-2 rounded-full transition-all"
-                  style={{
-                    width: `${countPercentage}%`,
-                    background: `linear-gradient(90deg, ${progressGradientStops.start}, ${progressGradientStops.end})`,
-                  }}
-                ></div>
+              {/* 픽셀 스타일 progress bar */}
+              <div className="w-full bg-gray-200 h-3 flex gap-0.5 overflow-hidden rounded-[4px]">
+                {createPixelBlocks(countPercentage, 5).map((blockWidth, index) => (
+                  <div
+                    key={index}
+                    className="h-full bg-[#F35DC8]"
+                    style={{ width: `${blockWidth}%` }}
+                  />
+                ))}
               </div>
             </div>
           );
         })}
 
         {totalMoodCount === 0 && (
-          <div className="bg-white rounded-3xl p-6 text-center border border-gray-100">
+          <div className="bg-white rounded-[12px] p-6 text-center border border-gray-100">
             <p className="text-sm text-gray-500">
               No mood data yet. Add moods to your expenses to see insights.
             </p>
@@ -117,7 +126,7 @@ function MoodPage({ transactions = [] }) {
             className="absolute inset-0 bg-black bg-opacity-40 z-[100]"
             onClick={() => setSelectedMood(null)}
           ></div>
-          <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl p-6 z-[101] max-h-[85vh] overflow-y-auto shadow-xl">
+          <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-[16px] p-6 z-[101] max-h-[85vh] overflow-y-auto shadow-xl">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <span className="text-2xl">
@@ -150,7 +159,7 @@ function MoodPage({ transactions = [] }) {
             ) : (
               <div className="space-y-3">
                 {moodTransactions.map((transaction) => (
-                  <div key={transaction.id} className="bg-gray-50 rounded-2xl p-4">
+                  <div key={transaction.id} className="bg-gray-50 rounded-[12px] p-4">
                     <div className="flex justify-between items-start gap-3">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
