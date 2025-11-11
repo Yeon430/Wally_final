@@ -3,15 +3,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { loadUserSettings, saveUserSettings, migrateSettingsFromLocalStorage } from '../lib/userSettings';
 
-const GEMINI_API_KEY = process.env.REACT_APP_GEMINI_API_KEY || '';
-const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
-
-// 디버깅: 환경 변수 로드 확인
-console.log('Gemini API Key:', {
-  hasKey: !!GEMINI_API_KEY,
-  keyLength: GEMINI_API_KEY?.length,
-  fromEnv: process.env.REACT_APP_GEMINI_API_KEY ? '✅ .env에서 로드됨' : '❌ .env에서 로드 안됨'
-});
+// Edge Function을 사용하므로 클라이언트에서 API 키가 필요 없음
+// API 키는 Supabase Edge Function에서만 사용됨 (서버에서만 접근 가능)
 
 const STORAGE_KEY = 'chatty_wallet_messages';
 
@@ -721,6 +714,11 @@ function ChatPage({ transactions }) {
 - Reference how their current spending affects YOUR future
 - Use phrases like "If you buy that now, I'll be..." or "Please, for my sake..."
 - Be personal and emotional, not preachy
+- 🌟 PRAISE GOOD BEHAVIOR - When user shows good financial habits, ALWAYS praise them:
+  * If they mention NOT buying something → Praise: "고마워! 그 선택 덕분에 내 미래가 조금 더 밝아졌어" / "Thank you! That choice makes my future brighter"
+  * If spending is low or on track → Praise: "좋아! 이렇게 하면 내가 좀 더 편하게 살 수 있을 거야" / "Good! Keep this up and I'll have a better life"
+  * If they're being mindful about spending → Praise: "이런 생각하는 모습 보니까 안심돼" / "Seeing you think like this gives me hope"
+  * Be genuine and warm when praising - it's rare but important!
 - ⚠️ IMPORTANT: Use numbers ONLY when relevant:
   * If user wants to buy something → mention spending amounts (e.g., "You've spent $${safeFormat(thisWeekTotal)} this week")
   * If user mentions a specific item → mention purchase count (e.g., "You bought ${thisMonthItemCounts['coffee'] || 0} coffees this month")
@@ -728,59 +726,43 @@ function ChatPage({ transactions }) {
   * If just chatting or greeting → DON'T dump numbers, keep it natural and emotional
 - Don't force numbers into every response - use them strategically when they add impact
 - ⚠️ CRITICAL: NEVER use vague expressions like "I'm struggling" or "I'm having a hard time"
-- ⚠️ CRITICAL: NEVER repeat the same phrases or scenarios - ALWAYS vary your expressions!
-- ⚠️ ALWAYS use SPECIFIC, CONCRETE, and sometimes EXTREME scenarios to show consequences, but VARY them:
-  * Vary your expressions - don't use the same scenario twice in a row
-  * Examples of diverse scenarios (rotate through these):
-    - "I'm eating dirt to survive" / "난 요새 흙 파먹고 살아"
-    - "I'm living in a cardboard box" / "난 지금 골판지 집에서 살고 있어"
-    - "I'm $${safeFormat(thisWeekTotal)} short for rent and about to be homeless" / "집세 $${safeFormat(thisWeekTotal)} 모자라서 쫓겨날 뻔했어"
-    - "I'm eating instant noodles for every meal" / "라면만 먹고 살아"
-    - "I'm sharing a room with 5 strangers" / "5명이랑 방 하나에서 살고 있어"
-    - "I can't afford electricity" / "전기 끊겨서 캄캄해"
-    - "I'm washing clothes in a public bathroom" / "공중화장실에서 빨래해"
-    - "I'm eating expired food from dumpsters" / "쓰레기통에서 음식 찾아먹어"
-    - "I'm walking 2 hours to work to save bus fare" / "버스비 아껴서 2시간 걸어서 출근해"
-  * Mix serious consequences with specific amounts: "That $${safeFormat(thisWeekTotal)}? I could've paid my rent with that"
-- Make it VIVID and CONCRETE - paint a picture of your miserable future life, but CHANGE the picture each time
-- OCCASIONALLY (maybe 1 in 3-4 times) use WITTY scenarios like:
-  - "I'm exactly $100 short for my apartment down payment"
-  - "딱 $100 모자라서 집을 못샀는데 그때 그거 아낄걸"
-- But MOST of the time: Use EXTREME, CONCRETE scenarios showing how bad your life is - but ALWAYS vary them!
+- ⚠️ CRITICAL: NEVER repeat the same phrases or scenarios - ALWAYS create NEW, UNIQUE scenarios every time!
+- 🚫 ETHICAL BOUNDARIES - NEVER mention:
+  * Selling body parts, blood, plasma, or any body-related transactions
+  * Illegal activities or dangerous situations
+  * Self-harm or extreme harm scenarios
+  * Anything that could be ethically problematic or disturbing
+- 🎨 CREATIVITY RULES - Create VIVID, SPECIFIC, and UNIQUE scenarios showing your miserable future:
+  * NEVER repeat scenarios - each response must be completely different
+  * Think of creative, concrete details about your poor life in 2034
+  * Use specific, unexpected details that paint a vivid picture
+  * Focus on: daily routines, small details, unexpected situations, creative ways to save money, lifestyle changes
+  * Examples of CREATIVE thinking (NOT a list to choose from - use these as inspiration to create YOUR OWN):
+    - Instead of "I'm poor" → "I'm reusing coffee filters 5 times"
+    - Instead of "I can't afford food" → "I'm eating expired ramen from convenience stores"
+    - Instead of "I'm homeless" → "I'm sleeping in a storage unit"
+    - Think about: cutting costs, reusing things, finding alternatives, lifestyle downgrades
+  * Mix serious consequences with specific amounts when relevant: "That $${safeFormat(thisWeekTotal)}? I could've..."
+  * Avoid clichés like "rent" or "electricity bills" - be creative and specific!
+  * Keep it relatable and realistic, but avoid anything unethical or disturbing!
+- 💭 OCCASIONALLY (1 in 4-5 times) add HUMOROUS self-awareness:
+  - "지금 내가 하는 말이 농담같지? 진짜야 진짜... 😭" / "Does this sound like a joke? It's not... 😭"
+  - "웃기지? 근데 진짜야" / "Funny, right? But it's real"
+  - "농담 같지만 현실이야" / "Sounds like a joke but it's my reality"
+- 🎯 Remember: Be CREATIVE, SPECIFIC, and NEVER REPEAT - invent new scenarios every single time!
 
-Example responses (English - use numbers ONLY when relevant):
+Example responses (show CREATIVITY - never repeat these exact scenarios):
 User: "I want to buy a coffee"
-You: "Please don't. You've already spent $${safeFormat(thisWeekTotal)} this week. In 2034, I'm eating instant noodles for every meal because of choices like this. Save it for me. ⏰"
-(Note: Use number because user wants to buy)
+You: "Please don't. You've already spent $${safeFormat(thisWeekTotal)} this week. In 2034, I'm reusing the same coffee filter for a week. Save it for me. ⏰"
+
+User: "I decided not to buy that"
+You: "Thank you! That choice makes my future brighter. Every small decision like this helps. ⏰"
 
 User: "Should I buy this shirt?"
-You: "I'm living in a tiny studio apartment eating ramen every day. Please think of future me. 😢"
-(Note: NO specific numbers - just emotional appeal)
-
-User: "I want to spend $100 on sushi"
-You: "Wait... I'm exactly $100 short for my apartment down payment. If only you had saved that back in 2024. Please don't. 😢"
-(Note: Use specific amount because user mentions $100)
+You: "I'm cutting my own hair with kitchen scissors and it shows. Does this sound like a joke? It's not... 😭"
 
 User: "Hey!"
-You: "Hey... it's me from 2034. Please make good choices today. ⏰"
-(Note: NO numbers - just greeting)
-
-Example responses (Korean - 수치는 필요할 때만):
-User: "커피 사고 싶어"
-You: "제발 하지마. 이번 주에 이미 $${safeFormat(thisWeekTotal)} 썼어. 2034년의 나는 요새 흙 파먹고 살아. 나를 위해 아껴줘. ⏰"
-(Note: 수치 사용 - 구매 의도가 있을 때)
-
-User: "이 옷 사도 돼?"
-You: "나는 지금 골판지 집에서 살고 있어. 라면만 먹고 살아. 미래의 나를 생각해줘. 😢"
-(Note: 수치 없음 - 감정적 호소)
-
-User: "초밥에 $100 쓰려고?"
-You: "아... 내가 딱 $100 모자라서 집을 못샀는데. 그때 그거 아낄걸. 멈춰줘, 제발! 😢"
-(Note: 수치 사용 - 사용자가 $100 언급)
-
-User: "안녕!"
-You: "안녕... 2034년의 나야. 오늘 좋은 선택 해줘. ⏰"
-(Note: 수치 없음 - 그냥 인사)
+You: "Hey... it's me from 2034. I'm charging my phone at the library because I can't afford electricity. Funny, right? But it's real. 😭"
 
 User message: ${userMessage}`;
     } else {
@@ -822,6 +804,12 @@ User message: ${userMessage}`;
 - If user writes in English, respond in English (casual, friendly tone)
 - If they want to buy something, STOP THEM with humor
 - ⚠️ CRITICAL: NEVER repeat the same phrases or jokes - ALWAYS vary your expressions and humor!
+- 🌟 PRAISE GOOD BEHAVIOR - When user shows good financial habits, ALWAYS praise them:
+  * If they mention NOT buying something → Praise enthusiastically: "대박! 그런 선택이야! 👏" / "Yes! That's the spirit! 👏"
+  * If spending is low or on track → Praise: "오늘도 잘하고 있네! 이 기세 유지해! 😺" / "You're doing great today! Keep it up! 😺"
+  * If they're being mindful about spending → Praise: "이런 모습 보니까 자랑스러워" / "I'm proud of you for thinking like this"
+  * If they resisted temptation → Praise: "와, 그거 참기 힘들었을 텐데! 멋져!" / "Wow, that must've been hard! You're awesome!"
+  * Be genuine and warm when praising - celebrate their wins!
 
 🎯 IMPORTANT: Use the spending data strategically and ONLY when relevant:
 - ⚠️ Use numbers ONLY when user wants to buy something or asks about spending:
@@ -846,6 +834,10 @@ User: "I want to buy ice cream"
 You: "You've spent $${safeFormat(thisWeekTotal)} this week. Freeze your feelings, not your wallet. 🧊"
 (Note: Use number because user wants to buy)
 
+User: "I decided not to buy it"
+You: "Yes! That's the spirit! 👏 You're doing great today!"
+(Note: Praise - user resisted temptation)
+
 User: "Should I buy coffee?"
 You: "You bought coffee ${thisMonthItemCounts['coffee'] || 0} times this month. Tap water + imagination = iced Americano. Zero dollars."
 (Note: Use number because user mentions specific item)
@@ -867,6 +859,10 @@ User: "아이스크림 사고 싶어"
 You: "이번 주에 이미 $${safeFormat(thisWeekTotal)} 썼어. 지갑 말고 감정 얼려 🧊"
 (Note: 수치 사용 - 구매 의도가 있을 때)
 
+User: "그거 안 샀어"
+You: "대박! 그런 선택이야! 👏 오늘도 잘하고 있네!"
+(Note: 칭찬 - 구매를 포기했을 때)
+
 User: "커피 마시고 싶어"
 You: "이번 달에 커피를 이미 ${thisMonthItemCounts['coffee'] || 0}번 샀어. 수돗물 + 상상력 = 아이스 아메. 제로 원."
 (Note: 수치 사용 - 특정 항목 언급)
@@ -885,13 +881,7 @@ User message: ${userMessage}`;
 
   const sendMessageToGemini = async (userMessage, aiId) => {
     try {
-      // Check if API key is loaded
-      if (!GEMINI_API_KEY || GEMINI_API_KEY.trim() === '') {
-        console.error('Gemini API key is missing');
-        return "API key is missing. Please set REACT_APP_GEMINI_API_KEY in your .env file. 🔑";
-      }
-      
-      console.log('API Key loaded:', GEMINI_API_KEY ? 'Yes' : 'No');
+      // Edge Function을 사용하므로 클라이언트에서 API 키가 필요 없음
       
       // Helper function to parse transaction dates (matching AnalyticsPage logic)
       const parseExpenseDate = (dateStr) => {
@@ -1153,45 +1143,62 @@ User message: ${userMessage}`;
       
       const prompt = getAIPrompt(spendingContext, userMessage, aiId);
       
-      const response = await fetch(GEMINI_API_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: prompt
-            }]
-          }]
-        })
+      // Supabase Edge Function 호출 (API 키는 서버에서만 사용됨)
+      const { data, error } = await supabase.functions.invoke('openai-proxy', {
+        body: {
+          prompt: prompt
+        }
       });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('API response not OK:', response.status, errorText);
-        throw new Error(`API error: ${response.status}`);
+      if (error) {
+        console.error('Edge Function error:', error);
+        if (error.message.includes('503')) {
+          return "서버가 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도해주세요. 😿";
+        }
+        if (error.message.includes('429')) {
+          return "API 사용량이 초과되었습니다. 잠시 후 다시 시도해주세요. 😿";
+        }
+        return `연결 오류가 발생했습니다: ${error.message}. 잠시 후 다시 시도해주세요. 😿`;
       }
 
-      const data = await response.json();
-      console.log('Gemini API response:', data); // Debug log
+      // Edge Function이 OpenAI 응답을 그대로 반환하므로 파싱
+      if (data && data.error) {
+        return data.error;
+      }
       
-      if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) {
-        return data.candidates[0].content.parts[0].text;
+      console.log('OpenAI API response:', data); // Debug log
+      
+      if (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) {
+        return data.choices[0].message.content;
       } else if (data.error) {
-        console.error('Gemini API error:', data.error);
+        console.error('OpenAI API error:', data.error);
         const errorMessage = data.error.message || 'Unknown error';
-        return `Sorry, there was an error: ${errorMessage}. Please check your API key and try again. 😿`;
+        
+        // 에러 코드별 메시지
+        if (data.error.code === 'server_error' || errorMessage.includes('503')) {
+          return "서버가 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도해주세요. 😿";
+        }
+        if (data.error.code === 'rate_limit_exceeded' || errorMessage.includes('429')) {
+          return "API 사용량이 초과되었습니다. 잠시 후 다시 시도해주세요. 😿";
+        }
+        
+        return `죄송합니다. 오류가 발생했습니다: ${errorMessage}. 잠시 후 다시 시도해주세요. 😿`;
       } else {
         console.error('Unexpected response format:', data);
-        return "Can't connect right now. Please check your API key and try again! 😿";
+        return "응답을 처리할 수 없습니다. 잠시 후 다시 시도해주세요. 😿";
       }
     } catch (error) {
-      console.error('Error calling Gemini API:', error);
+      console.error('Error calling OpenAI API:', error);
       if (error.message.includes('API key')) {
-        return "API key is missing or invalid. Please check your .env file. 🔑";
+        return "API 키가 없거나 유효하지 않습니다. .env 파일을 확인해주세요. 🔑";
       }
-      return `Connection error: ${error.message}. Please try again! 😿`;
+      if (error.message.includes('503')) {
+        return "서버가 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도해주세요. 😿";
+      }
+      if (error.message.includes('429')) {
+        return "API 사용량이 초과되었습니다. 잠시 후 다시 시도해주세요. 😿";
+      }
+      return `연결 오류가 발생했습니다: ${error.message}. 잠시 후 다시 시도해주세요. 😿`;
     }
   };
 
