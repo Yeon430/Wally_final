@@ -151,10 +151,28 @@ function ProfilePage() {
       }
 
       console.log('Profile updated successfully:', updatedUser);
+      console.log('Updated user_metadata:', updatedUser?.user?.user_metadata);
+
+      // 저장 확인: 실제로 저장되었는지 확인
+      const { data: { user: verifiedUser } } = await supabase.auth.getUser();
+      console.log('Verified user after update:', verifiedUser);
+      console.log('Verified user_metadata:', verifiedUser?.user_metadata);
+      
+      if (verifiedUser?.user_metadata?.name !== nickname.trim() || 
+          verifiedUser?.user_metadata?.nickname !== nickname.trim()) {
+        console.warn('Profile data mismatch! Expected:', { nickname: nickname.trim() }, 'Got:', verifiedUser?.user_metadata);
+        alert('프로필 저장에 문제가 있을 수 있습니다. 다시 시도해주세요.');
+      }
 
       // 성공 메시지
       alert('프로필이 업데이트되었습니다!');
       setShowEditModal(false);
+      
+      // 세션 새로고침하여 변경사항 반영
+      const { data: { session: newSession } } = await supabase.auth.getSession();
+      if (newSession) {
+        console.log('New session user_metadata:', newSession.user?.user_metadata);
+      }
       
       // 페이지 새로고침하여 변경사항 반영
       window.location.reload();
