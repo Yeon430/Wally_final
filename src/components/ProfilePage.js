@@ -11,7 +11,41 @@ function ProfilePage() {
   const [profileImageUrl, setProfileImageUrl] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [userProfile, setUserProfile] = useState(null);
+  const [loadingProfile, setLoadingProfile] = useState(true);
   const fileInputRef = useRef(null);
+
+  // 프로필 정보 로드 (user_profiles 테이블에서)
+  React.useEffect(() => {
+    const loadUserProfile = async () => {
+      if (!user) {
+        setLoadingProfile(false);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('user_profiles')
+          .select('nickname, avatar_url')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (error && error.code !== 'PGRST116') {
+          console.error('Error loading user profile:', error);
+        }
+
+        if (data) {
+          setUserProfile(data);
+        }
+        setLoadingProfile(false);
+      } catch (error) {
+        console.error('Error loading user profile:', error);
+        setLoadingProfile(false);
+      }
+    };
+
+    loadUserProfile();
+  }, [user]);
 
   const handleLogout = async () => {
     if (window.confirm('로그아웃하시겠습니까?')) {
@@ -20,13 +54,18 @@ function ProfilePage() {
     }
   };
 
+  // 프로필 정보 표시 (user_profiles 우선, 없으면 user_metadata, 없으면 기본값)
   const displayName =
+    userProfile?.nickname ||
     user?.user_metadata?.name ||
     user?.user_metadata?.nickname ||
     user?.email?.split('@')[0] ||
     'Guest';
 
-  const currentProfileImage = user?.user_metadata?.avatar_url || profileImage;
+  const currentProfileImage = 
+    userProfile?.avatar_url ||
+    user?.user_metadata?.avatar_url ||
+    profileImage;
 
   // 프로필 편집 모달 열기
   const handleManageProfile = () => {
@@ -136,8 +175,45 @@ function ProfilePage() {
 
       console.log('Updating user profile:', { nickname, avatarUrl });
 
-      // Supabase user metadata 업데이트
-      const { data: updatedUser, error } = await supabase.auth.updateUser({
+      // 1. user_profiles 테이블에 저장 (Google OAuth 로그인 시에도 유지됨)
+      const { data: existingProfile } = await supabase
+        .from('user_profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      const profileData = {
+        nickname: nickname.trim(),
+        avatar_url: avatarUrl,
+        updated_at: new Date().toISOString()
+      };
+
+      let profileError = null;
+      if (existingProfile) {
+        // 업데이트
+        const { error } = await supabase
+          .from('user_profiles')
+          .update(profileData)
+          .eq('user_id', user.id);
+        profileError = error;
+      } else {
+        // 삽입
+        const { error } = await supabase
+          .from('user_profiles')
+          .insert({
+            user_id: user.id,
+            ...profileData
+          });
+        profileError = error;
+      }
+
+      if (profileError) {
+        console.error('Error saving to user_profiles:', profileError);
+        throw profileError;
+      }
+
+      // 2. user_metadata에도 저장 (호환성을 위해)
+      const { data: updatedUser, error: metadataError } = await supabase.auth.updateUser({
         data: {
           name: nickname.trim(),
           nickname: nickname.trim(),
@@ -145,34 +221,29 @@ function ProfilePage() {
         }
       });
 
-      if (error) {
-        console.error('Supabase updateUser error:', error);
-        throw error;
+      if (metadataError) {
+        console.warn('Warning: Failed to update user_metadata:', metadataError);
+        // user_profiles에 저장되었으므로 계속 진행
       }
 
-      console.log('Profile updated successfully:', updatedUser);
-      console.log('Updated user_metadata:', updatedUser?.user?.user_metadata);
+      console.log('Profile saved to user_profiles successfully');
+      console.log('Profile data:', profileData);
 
-      // 저장 확인: 실제로 저장되었는지 확인
-      const { data: { user: verifiedUser } } = await supabase.auth.getUser();
-      console.log('Verified user after update:', verifiedUser);
-      console.log('Verified user_metadata:', verifiedUser?.user_metadata);
-      
-      if (verifiedUser?.user_metadata?.name !== nickname.trim() || 
-          verifiedUser?.user_metadata?.nickname !== nickname.trim()) {
-        console.warn('Profile data mismatch! Expected:', { nickname: nickname.trim() }, 'Got:', verifiedUser?.user_metadata);
-        alert('프로필 저장에 문제가 있을 수 있습니다. 다시 시도해주세요.');
+      // 저장 확인: user_profiles에서 확인
+      const { data: verifiedProfile } = await supabase
+        .from('user_profiles')
+        .select('nickname, avatar_url')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (verifiedProfile) {
+        setUserProfile(verifiedProfile);
+        console.log('Verified profile:', verifiedProfile);
       }
 
       // 성공 메시지
       alert('프로필이 업데이트되었습니다!');
       setShowEditModal(false);
-      
-      // 세션 새로고침하여 변경사항 반영
-      const { data: { session: newSession } } = await supabase.auth.getSession();
-      if (newSession) {
-        console.log('New session user_metadata:', newSession.user?.user_metadata);
-      }
       
       // 페이지 새로고침하여 변경사항 반영
       window.location.reload();
