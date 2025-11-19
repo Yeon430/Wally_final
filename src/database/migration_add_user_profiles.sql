@@ -34,3 +34,5 @@ CREATE POLICY "Users can delete own profile"
 -- Step 4: Create index for better performance
 CREATE INDEX IF NOT EXISTS user_profiles_user_id_idx ON user_profiles(user_id);
 
+
+
