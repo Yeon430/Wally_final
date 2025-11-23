@@ -165,10 +165,62 @@ function SplashScreen() {
     <>
 
       <style>{`
+        /* 모바일 전체 화면 스플래시 */
+        @media (max-width: 768px), (hover: none) and (pointer: coarse) {
+          .splash-container .phone-frame {
+            width: 100% !important;
+            height: 100vh !important;
+            height: 100dvh !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
 
+          .splash-container .phone-content {
+            width: 100% !important;
+            height: 100% !important;
+            min-height: 100vh !important;
+            min-height: 100dvh !important;
+          }
+
+          .splash-container img {
+            max-width: 95vw !important;
+            max-height: 95vh !important;
+            width: auto !important;
+            height: auto !important;
+          }
+        }
+
+        body.mobile-device .splash-container .phone-frame,
+        html.mobile-device .splash-container .phone-frame {
+          width: 100% !important;
+          height: 100vh !important;
+          height: 100dvh !important;
+          border-radius: 0 !important;
+          box-shadow: none !important;
+          margin: 0 !important;
+          padding: 0 !important;
+        }
+
+        body.mobile-device .splash-container .phone-content,
+        html.mobile-device .splash-container .phone-content {
+          width: 100% !important;
+          height: 100% !important;
+          min-height: 100vh !important;
+          min-height: 100dvh !important;
+        }
+
+        body.mobile-device .splash-container img,
+        html.mobile-device .splash-container img {
+          max-width: 95vw !important;
+          max-height: 95vh !important;
+          width: auto !important;
+          height: auto !important;
+        }
       `}</style>
 
-      <div className="app-container" style={{ zIndex: 9999 }}>
+      <div className="app-container splash-container" style={{ zIndex: 9999 }}>
 
         <div className="phone-frame" style={{ background: '#9DFF00', overflow: 'hidden' }}>
 
@@ -206,7 +258,7 @@ function SplashScreen() {
 
                   alt="Wally" 
 
-                  className="w-auto h-auto max-w-[80vw] max-h-[80vh] object-contain"
+                  className="w-auto h-auto max-w-[80vw] max-h-[80vh] md:max-w-[80vw] md:max-h-[80vh] object-contain"
 
                   style={{ display: 'block', position: 'relative', zIndex: 5 }}
 
