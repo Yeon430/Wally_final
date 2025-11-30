@@ -500,11 +500,12 @@ function SpendingPage({ transactions, setTransactions, onDeleteTransaction }) {
     
     if (editingTransaction) {
       // Update existing transaction
+      const trimmedDescription = description.trim();
       const updatedTransaction = {
         ...editingTransaction,
         date: formattedDate,
         time: transactionTime,
-        description: description.trim(),
+        description: trimmedDescription || null,
         amount: transactionType === 'income' ? parseFloat(amount) : -parseFloat(amount),
         type: transactionType,
         category: transactionType === 'income' ? 'income' : category,
@@ -520,7 +521,7 @@ function SpendingPage({ transactions, setTransactions, onDeleteTransaction }) {
             .update({
               date: formattedDate,
               time: transactionTime,
-              description: updatedTransaction.description,
+              description: trimmedDescription || null,
               amount: Math.abs(updatedTransaction.amount),
               type: updatedTransaction.type,
               category: updatedTransaction.category,
@@ -554,7 +555,7 @@ function SpendingPage({ transactions, setTransactions, onDeleteTransaction }) {
     
     // Add new transaction
     const now = new Date();
-    const transactionDescription = description.trim() || '';
+    const transactionDescription = description.trim() || null;
     const newTransaction = {
       id: Date.now(),
       date: formattedDate,
@@ -595,7 +596,7 @@ function SpendingPage({ transactions, setTransactions, onDeleteTransaction }) {
             user_id: user.id,
             date: formattedDate,
             time: transactionTime,
-            description: transactionDescription,
+            description: transactionDescription || null,
             amount: Math.abs(parseFloat(amount)),
             type: transactionType,
             category: transactionType === 'income' ? 'income' : category,
