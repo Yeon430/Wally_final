@@ -379,29 +379,54 @@ function SpendingPage({ transactions, setTransactions, onDeleteTransaction }) {
     }
   }, [transactionType, showModal]);
 
+  // Helper function to format date to YYYY-MM-DD in local timezone (no timezone conversion)
+  const formatDateToYYYYMMDD = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   // Helper function to parse date string (e.g., "Nov 9" or "11/09") to YYYY-MM-DD
   const parseDateToInputFormat = (dateStr) => {
     if (!dateStr) {
       const today = new Date();
-      return today.toISOString().split('T')[0]; // YYYY-MM-DD
+      return formatDateToYYYYMMDD(today); // YYYY-MM-DD
     }
     
     try {
+      // If already in YYYY-MM-DD format, return as is
+      const yyyyMMddMatch = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (yyyyMMddMatch) {
+        return dateStr;
+      }
+      
       // Try parsing "Nov 9" format
       const today = new Date();
       const currentYear = today.getFullYear();
-      const parsedDate = new Date(`${dateStr} ${currentYear}`);
-      
-      if (!isNaN(parsedDate.getTime())) {
-        return parsedDate.toISOString().split('T')[0];
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const monthMatch = dateStr.match(/([A-Za-z]+)\s+(\d{1,2})/);
+      if (monthMatch) {
+        const monthName = monthMatch[1].slice(0, 3);
+        const monthIndex = monthNames.findIndex(m => m.toLowerCase() === monthName.toLowerCase());
+        const day = parseInt(monthMatch[2], 10);
+        if (monthIndex !== -1) {
+          const parsedDate = new Date(currentYear, monthIndex, day);
+          return formatDateToYYYYMMDD(parsedDate);
+        }
       }
       
       // Try parsing "MM/DD" format
       if (dateStr.includes('/')) {
-        const [month, day] = dateStr.split('/');
-        const parsedDate2 = new Date(currentYear, parseInt(month) - 1, parseInt(day));
-        if (!isNaN(parsedDate2.getTime())) {
-          return parsedDate2.toISOString().split('T')[0];
+        const parts = dateStr.split('/');
+        if (parts.length >= 2) {
+          const month = parseInt(parts[0], 10);
+          const day = parseInt(parts[1], 10);
+          const year = parts.length >= 3 ? parseInt(parts[2], 10) : currentYear;
+          const parsedDate = new Date(year, month - 1, day);
+          if (!isNaN(parsedDate.getTime())) {
+            return formatDateToYYYYMMDD(parsedDate);
+          }
         }
       }
     } catch (e) {
@@ -410,7 +435,7 @@ function SpendingPage({ transactions, setTransactions, onDeleteTransaction }) {
     
     // Fallback to today
     const today = new Date();
-    return today.toISOString().split('T')[0];
+    return formatDateToYYYYMMDD(today);
   };
 
   // Helper function to convert YYYY-MM-DD to "Nov 9" format
@@ -421,6 +446,17 @@ function SpendingPage({ transactions, setTransactions, onDeleteTransaction }) {
     }
     
     try {
+      // If dateStr is in YYYY-MM-DD format, parse it manually to avoid timezone issues
+      const yyyyMMddMatch = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (yyyyMMddMatch) {
+        const year = parseInt(yyyyMMddMatch[1], 10);
+        const month = parseInt(yyyyMMddMatch[2], 10) - 1; // 0-indexed
+        const day = parseInt(yyyyMMddMatch[3], 10);
+        const date = new Date(year, month, day);
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      }
+      
+      // For other formats, try parsing normally
       const date = new Date(dateStr);
       if (!isNaN(date.getTime())) {
         return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -446,7 +482,7 @@ function SpendingPage({ transactions, setTransactions, onDeleteTransaction }) {
   };
 
   const handleAddTransaction = async () => {
-    if (!description.trim() || !amount.trim() || parseFloat(amount) <= 0) return;
+    if (!amount.trim() || parseFloat(amount) <= 0) return;
     
     // Format date for storage
     const formattedDate = transactionDate ? formatDateToDisplay(transactionDate) : (() => {
@@ -518,6 +554,7 @@ function SpendingPage({ transactions, setTransactions, onDeleteTransaction }) {
     
     // Add new transaction
     const now = new Date();
+    const transactionDescription = description.trim() || '';
     const newTransaction = {
       id: Date.now(),
       date: formattedDate,
@@ -526,7 +563,7 @@ function SpendingPage({ transactions, setTransactions, onDeleteTransaction }) {
         const selectedDate = transactionDate ? new Date(transactionDate) : now;
         return selectedDate.toLocaleDateString('en-US', { weekday: 'short' });
       })(),
-      description: description.trim(),
+      description: transactionDescription,
       amount: transactionType === 'income' ? parseFloat(amount) : -parseFloat(amount),
       type: transactionType,
       category: transactionType === 'income' ? 'income' : category,
@@ -548,6 +585,44 @@ function SpendingPage({ transactions, setTransactions, onDeleteTransaction }) {
     setTransactionDate('');
     setCategory(expenseCategories[0] || 'shopping');
     setMood(null);
+    
+    // Save to Supabase if logged in
+    if (user) {
+      try {
+        const { data, error } = await supabase
+          .from('transactions')
+          .insert({
+            user_id: user.id,
+            date: formattedDate,
+            time: transactionTime,
+            description: transactionDescription,
+            amount: Math.abs(parseFloat(amount)),
+            type: transactionType,
+            category: transactionType === 'income' ? 'income' : category,
+            mood: transactionType === 'expense' ? mood : null,
+            notes: notes.trim() || null
+          })
+          .select()
+          .single();
+        
+        if (error) {
+          console.error('Error saving transaction to Supabase:', error);
+          // Show error to user but don't remove from local state
+          alert(`저장 중 오류가 발생했습니다: ${error.message}`);
+        } else if (data) {
+          // Update transaction with Supabase ID for consistency
+          setTransactions(prev => prev.map(t => 
+            t.id === newTransaction.id 
+              ? { ...t, id: data.id }
+              : t
+          ));
+        }
+      } catch (error) {
+        console.error('Error saving transaction to Supabase:', error);
+        // Show error to user but don't remove from local state
+        alert(`저장 중 오류가 발생했습니다: ${error.message || '알 수 없는 오류'}`);
+      }
+    }
   };
 
   const handleAddCategory = async () => {
@@ -911,7 +986,7 @@ function SpendingPage({ transactions, setTransactions, onDeleteTransaction }) {
             onClick={() => {
               setTransactionType('income');
               const today = new Date();
-              setTransactionDate(today.toISOString().split('T')[0]);
+              setTransactionDate(formatDateToYYYYMMDD(today));
               setShowModal(true);
             }}
           >
@@ -932,8 +1007,8 @@ function SpendingPage({ transactions, setTransactions, onDeleteTransaction }) {
             }}
             onClick={() => {
               setTransactionType('expense');
-                const today = new Date();
-                setTransactionDate(today.toISOString().split('T')[0]);
+              const today = new Date();
+              setTransactionDate(formatDateToYYYYMMDD(today));
               setShowModal(true);
             }}
           >
@@ -1100,7 +1175,7 @@ function SpendingPage({ transactions, setTransactions, onDeleteTransaction }) {
               <div className="relative">
                 <input
                   type="date"
-                  value={transactionDate || new Date().toISOString().split('T')[0]}
+                  value={transactionDate || formatDateToYYYYMMDD(new Date())}
                   onChange={(e) => setTransactionDate(e.target.value)}
                   className="w-full bg-gray-100 rounded-lg px-4 py-4 text-black placeholder-gray-400 border-none outline-none text-base"
                 />
@@ -1246,7 +1321,7 @@ function SpendingPage({ transactions, setTransactions, onDeleteTransaction }) {
                 </button>
                 <button
                   onClick={handleAddTransaction}
-                  disabled={!description.trim() || !amount.trim() || parseFloat(amount) <= 0}
+                  disabled={!amount.trim() || parseFloat(amount) <= 0}
                   className="flex-1 bg-black text-white py-4 rounded-lg font-medium text-base disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {editingTransaction ? 'Save' : 'Add'}

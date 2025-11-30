@@ -90,8 +90,8 @@ function AppContent() {
         id: t.id,
         date: t.date,
         time: t.time,
-        description: t.description,
-        amount: parseFloat(t.amount),
+        description: t.description || '',
+        amount: t.type === 'expense' ? -Math.abs(parseFloat(t.amount)) : Math.abs(parseFloat(t.amount)),
         type: t.type,
         category: t.category,
         mood: t.mood,
@@ -321,10 +321,10 @@ function AppContent() {
 function App() {
   return (
     <ErrorBoundary>
-      <AuthProvider>
-        <AppContent />
+    <AuthProvider>
+      <AppContent />
         <Analytics />
-      </AuthProvider>
+    </AuthProvider>
     </ErrorBoundary>
   );
 }
