@@ -438,6 +438,38 @@ function SpendingPage({ transactions, setTransactions, onDeleteTransaction }) {
     return formatDateToYYYYMMDD(today);
   };
 
+  // Helper function to check if a date is in the future
+  const isFutureDate = (dateStr) => {
+    if (!dateStr) return false;
+    
+    try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      // If dateStr is in YYYY-MM-DD format, parse it manually
+      const yyyyMMddMatch = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (yyyyMMddMatch) {
+        const year = parseInt(yyyyMMddMatch[1], 10);
+        const month = parseInt(yyyyMMddMatch[2], 10) - 1;
+        const day = parseInt(yyyyMMddMatch[3], 10);
+        const date = new Date(year, month, day);
+        date.setHours(0, 0, 0, 0);
+        return date.getTime() > today.getTime();
+      }
+      
+      // For other formats, try parsing normally
+      const date = new Date(dateStr);
+      if (!isNaN(date.getTime())) {
+        date.setHours(0, 0, 0, 0);
+        return date.getTime() > today.getTime();
+      }
+    } catch (e) {
+      console.error('Error checking future date:', e);
+    }
+    
+    return false;
+  };
+
   // Helper function to convert YYYY-MM-DD to "Nov 9" format
   const formatDateToDisplay = (dateStr) => {
     if (!dateStr) {
@@ -1092,9 +1124,14 @@ function SpendingPage({ transactions, setTransactions, onDeleteTransaction }) {
                     {/* Left: Title and Category */}
                     <div className="flex-1 min-w-0 pr-4">
                       <div className="flex items-center gap-2 mb-1">
-                        <h3 className="text-base font-semibold text-black">{transaction.description}</h3>
+                        <h3 className="text-base font-semibold text-black">{transaction.description || 'No description'}</h3>
                         {transaction.mood && (
                           <span className="text-lg">{MOOD_EMOJIS[transaction.mood] || '🙂'}</span>
+                        )}
+                        {isFutureDate(transaction.date) && (
+                          <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">
+                            예정
+                          </span>
                         )}
                       </div>
                       <p className="text-xs text-gray-500">

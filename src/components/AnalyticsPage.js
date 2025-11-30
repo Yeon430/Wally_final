@@ -579,9 +579,9 @@ function AnalyticsPage({ transactions = [], onDateClick, autoOpenTracker = false
     dateArray.forEach((date, index) => {
       const dayNumber = date.getDate();
       const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-      // Only past dates (including today) are clickable, regardless of goal period
+      // All dates (past, today, and future) are clickable
       // Compare dates using getTime() for accurate comparison
-      const isClickable = date.getTime() <= today.getTime();
+      const isClickable = true;
       
       // Check if date is within goal period for highlight effect
       const dateTimestamp = date.getTime();

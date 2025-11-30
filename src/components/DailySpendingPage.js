@@ -162,7 +162,7 @@ function DailySpendingPage({ transactions = [], selectedDate, onBack, currentDay
             if (!date || isNaN(date)) return null;
             const isSelected = date === actualSelectedDate;
             const status = dayStatuses ? dayStatuses[date] : undefined;
-            const isDisabled = date > actualCurrentDay;
+            const isDisabled = false; // Allow future dates for scheduled transactions
             let buttonClasses = 'w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-all ';
             if (isDisabled) {
               buttonClasses += 'bg-gray-100 text-gray-400 cursor-not-allowed';
