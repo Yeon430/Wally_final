@@ -185,10 +185,11 @@ function SplashScreen() {
           }
 
           .splash-container img {
-            max-width: 95vw !important;
-            max-height: 95vh !important;
-            width: auto !important;
-            height: auto !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            height: 100dvh !important;
+            object-fit: cover !important;
+            object-position: center !important;
           }
         }
 
@@ -213,10 +214,11 @@ function SplashScreen() {
 
         body.mobile-device .splash-container img,
         html.mobile-device .splash-container img {
-          max-width: 95vw !important;
-          max-height: 95vh !important;
-          width: auto !important;
-          height: auto !important;
+          width: 100vw !important;
+          height: 100vh !important;
+          height: 100dvh !important;
+          object-fit: cover !important;
+          object-position: center !important;
         }
       `}</style>
 
@@ -244,9 +246,9 @@ function SplashScreen() {
 
               ref={containerRef}
 
-              className="relative inline-block"
+              className="relative"
 
-              style={{ position: 'relative', display: 'inline-block' }}
+              style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'block' }}
 
             >
 
@@ -258,9 +260,9 @@ function SplashScreen() {
 
                   alt="Wally" 
 
-                  className="w-auto h-auto max-w-[80vw] max-h-[80vh] md:max-w-[80vw] md:max-h-[80vh] object-contain"
+                  className="w-full h-full object-cover"
 
-                  style={{ display: 'block', position: 'relative', zIndex: 5 }}
+                  style={{ display: 'block', position: 'relative', zIndex: 5, width: '100vw', height: '100vh', height: '100dvh' }}
 
                   onLoad={() => setImageLoaded(true)}
 

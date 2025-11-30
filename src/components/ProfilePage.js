@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { trackLogout } from '../lib/analytics';
@@ -62,10 +62,14 @@ function ProfilePage() {
     user?.email?.split('@')[0] ||
     'Guest';
 
-  const currentProfileImage = 
-    userProfile?.avatar_url ||
-    user?.user_metadata?.avatar_url ||
-    profileImage;
+  const currentProfileImage = useMemo(() => {
+    const avatarUrl = userProfile?.avatar_url || user?.user_metadata?.avatar_url;
+    // URL인 경우 캐시 무효화를 위해 타임스탬프 추가
+    if (avatarUrl && avatarUrl.startsWith('http')) {
+      return `${avatarUrl}?t=${userProfile?.updated_at || Date.now()}`;
+    }
+    return avatarUrl || profileImage;
+  }, [userProfile?.avatar_url, userProfile?.updated_at, user?.user_metadata?.avatar_url]);
 
   // 프로필 편집 모달 열기
   const handleManageProfile = () => {
@@ -245,8 +249,16 @@ function ProfilePage() {
       alert('프로필이 업데이트되었습니다!');
       setShowEditModal(false);
       
-      // 페이지 새로고침하여 변경사항 반영
-      window.location.reload();
+      // 프로필 다시 로드하여 최신 데이터 가져오기
+      const { data: reloadedProfile } = await supabase
+        .from('user_profiles')
+        .select('nickname, avatar_url')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      
+      if (reloadedProfile) {
+        setUserProfile(reloadedProfile);
+      }
     } catch (error) {
       console.error('Error updating profile:', error);
       const errorMessage = error.message || '알 수 없는 오류가 발생했습니다.';
@@ -389,6 +401,10 @@ function ProfilePage() {
                 src={currentProfileImage} 
                 alt="Profile" 
                 className="w-full h-full object-cover"
+                key={userProfile?.avatar_url || user?.user_metadata?.avatar_url || 'default'}
+                onError={(e) => {
+                  e.target.src = profileImage;
+                }}
               />
             </div>
             <div className="flex-1">

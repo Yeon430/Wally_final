@@ -282,9 +282,6 @@ function AnalyticsPage({ transactions = [], onDateClick, autoOpenTracker = false
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-
-  // Calculate daily spending from transactions
-  const dailyGoal = Math.round(target / daysInPeriod);
   // Parse the selected start date (for goal calculation only)
   // Parse YYYY-MM-DD format to avoid timezone issues
   const startDateParts = startDate.split('-');
@@ -301,6 +298,68 @@ function AnalyticsPage({ transactions = [], onDateClick, autoOpenTracker = false
   const calendarEndDate = new Date(selectedStartDate);
   calendarEndDate.setDate(selectedStartDate.getDate() + daysInPeriod - 1);
   calendarEndDate.setHours(23, 59, 59, 999); // Set to end of day for inclusive comparison
+
+  // Calculate actual spending up to today within the goal period
+  const todayTimestamp = today.getTime();
+  const startTimestamp = selectedStartDate.getTime();
+  const endTimestamp = calendarEndDate.getTime();
+  
+  // Calculate spending from start date to today (inclusive)
+  let actualSpendingToDate = 0;
+  expenses.forEach(expense => {
+    if (expense.date) {
+      // Parse expense date
+      let expenseDate = null;
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const dateMatch = expense.date.match(/(\w+)\s+(\d+)/);
+      if (dateMatch) {
+        const monthName = dateMatch[1];
+        const day = parseInt(dateMatch[2], 10);
+        const monthIndex = monthNames.findIndex(m => m === monthName);
+        if (monthIndex !== -1) {
+          // Try to determine the year
+          const todayMonth = new Date().getMonth();
+          const todayYear = new Date().getFullYear();
+          let expenseYear = todayYear;
+          if (monthIndex > todayMonth) {
+            expenseYear = todayYear - 1;
+          }
+          expenseDate = new Date(expenseYear, monthIndex, day);
+          expenseDate.setHours(0, 0, 0, 0);
+        }
+      }
+      
+      // Also try MM/DD format
+      if (!expenseDate) {
+        const mmddMatch = expense.date.match(/(\d{1,2})\/(\d{1,2})(?:\/(\d{4}))?/);
+        if (mmddMatch) {
+          const month = parseInt(mmddMatch[1]) - 1;
+          const day = parseInt(mmddMatch[2]);
+          const year = mmddMatch[3] ? parseInt(mmddMatch[3]) : new Date().getFullYear();
+          expenseDate = new Date(year, month, day);
+          expenseDate.setHours(0, 0, 0, 0);
+        }
+      }
+      
+      // If expense date is within goal period and up to today, add to actual spending
+      if (expenseDate) {
+        const expenseTimestamp = expenseDate.getTime();
+        if (expenseTimestamp >= startTimestamp && expenseTimestamp <= todayTimestamp && expenseTimestamp <= endTimestamp) {
+          actualSpendingToDate += Math.abs(expense.amount);
+        }
+      }
+    }
+  });
+
+  // Calculate remaining budget and days
+  const remainingBudget = Math.max(0, target - actualSpendingToDate);
+  const remainingDays = Math.max(1, Math.ceil((endTimestamp - todayTimestamp) / (1000 * 60 * 60 * 24)) + 1); // +1 to include today
+  
+  // Calculate dynamic daily goal: remaining budget divided by remaining days
+  // If we're past the end date, use the original calculation
+  const dailyGoal = todayTimestamp > endTimestamp 
+    ? Math.round(target / daysInPeriod)
+    : Math.round(remainingBudget / remainingDays);
   
   // Generate array of dates for DISPLAYED MONTH (can navigate to previous/next months)
   const currentMonth = displayMonth;
