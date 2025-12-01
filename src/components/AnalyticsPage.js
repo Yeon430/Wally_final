@@ -1173,31 +1173,6 @@ function AnalyticsPage({ transactions = [], onDateClick, autoOpenTracker = false
         </div>
       </div>
 
-      <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div className="rounded-[12px] border border-gray-200 bg-white px-5 py-5 flex flex-col text-left">
-          <div className="flex items-center justify-between mb-6">
-            <p className="text-sm font-semibold text-gray-600">Daily Goal</p>
-          </div>
-          <p className="text-3xl font-semibold text-black tracking-tight mt-auto">
-            ${formatCurrency(Number.isFinite(dailyGoal) ? dailyGoal : 0)}
-          </p>
-        </div>
-
-        <div className="rounded-[12px] border border-gray-200 bg-white px-5 py-5 flex flex-col">
-          <div className="flex items-center justify-between mb-6">
-            <p className="text-sm font-semibold text-gray-600">Current Streak</p>
-            <span className="inline-flex items-center justify-center w-8 h-8 rounded-full border border-[#F35DC8] text-[#F35DC8] bg-white">
-              <svg width="16" height="12" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ transform: 'scaleX(1.2)' }}>
-                <path d="M6 10L9 13L14 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </span>
-          </div>
-          <p className="text-3xl font-semibold text-black tracking-tight mt-auto">
-            {goalStreak} {goalStreak === 1 ? 'day' : 'days'}
-          </p>
-        </div>
-      </div>
-
       {/* Tracker Calendar Section */}
       <div className="bg-white rounded-[16px] p-6 shadow-sm -mx-6">
         {renderTrackerContent()}
