@@ -247,6 +247,106 @@ function MoodPage({ transactions = [] }) {
     }
   };
 
+  // Calculate overall spending patterns (not mood-specific)
+  const overallCategoryAnalysis = useMemo(() => {
+    const categoryTotals = {};
+    expenses.forEach(expense => {
+      const category = expense.category || 'uncategorized';
+      if (!categoryTotals[category]) {
+        categoryTotals[category] = { total: 0, count: 0 };
+      }
+      categoryTotals[category].total += Math.abs(expense.amount);
+      categoryTotals[category].count += 1;
+    });
+    return categoryTotals;
+  }, [expenses]);
+
+  const overallTimeOfDayAnalysis = useMemo(() => {
+    const timeTotals = { Morning: 0, Afternoon: 0, Evening: 0, Night: 0 };
+    expenses.forEach(expense => {
+      const hour = getHourFromTime(expense.time);
+      const timeOfDay = getTimeOfDay(hour);
+      if (timeOfDay !== 'Unknown') {
+        timeTotals[timeOfDay] = (timeTotals[timeOfDay] || 0) + 1;
+      }
+    });
+    return timeTotals;
+  }, [expenses]);
+
+  const overallDayOfWeekAnalysis = useMemo(() => {
+    const dayTotals = {
+      Sunday: { total: 0, count: 0 },
+      Monday: { total: 0, count: 0 },
+      Tuesday: { total: 0, count: 0 },
+      Wednesday: { total: 0, count: 0 },
+      Thursday: { total: 0, count: 0 },
+      Friday: { total: 0, count: 0 },
+      Saturday: { total: 0, count: 0 }
+    };
+    expenses.forEach(expense => {
+      const expenseDate = parseTransactionDate(expense.date);
+      if (expenseDate) {
+        const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const dayName = dayNames[expenseDate.getDay()];
+        if (dayTotals[dayName]) {
+          dayTotals[dayName].total += Math.abs(expense.amount);
+          dayTotals[dayName].count += 1;
+        }
+      }
+    });
+    return dayTotals;
+  }, [expenses]);
+
+  const overallTrendAnalysis = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const thisWeekStart = new Date(today);
+    thisWeekStart.setDate(today.getDate() - today.getDay());
+    
+    const lastWeekStart = new Date(thisWeekStart);
+    lastWeekStart.setDate(thisWeekStart.getDate() - 7);
+    
+    const lastWeekEnd = new Date(thisWeekStart);
+    lastWeekEnd.setDate(thisWeekStart.getDate() - 1);
+    lastWeekEnd.setHours(23, 59, 59, 999);
+
+    const thisWeekTotal = expenses.filter(expense => {
+      const expenseDate = parseTransactionDate(expense.date);
+      return expenseDate && expenseDate >= thisWeekStart && expenseDate <= today;
+    }).reduce((sum, e) => sum + Math.abs(e.amount), 0);
+
+    const lastWeekTotal = expenses.filter(expense => {
+      const expenseDate = parseTransactionDate(expense.date);
+      return expenseDate && expenseDate >= lastWeekStart && expenseDate <= lastWeekEnd;
+    }).reduce((sum, e) => sum + Math.abs(e.amount), 0);
+
+    return { thisWeekTotal, lastWeekTotal };
+  }, [expenses]);
+
+  // Calculate average transaction amount
+  const averageTransactionAmount = useMemo(() => {
+    if (expenses.length === 0) return 0;
+    const total = expenses.reduce((sum, e) => sum + Math.abs(e.amount), 0);
+    return total / expenses.length;
+  }, [expenses]);
+
+  // Find highest and lowest spending days
+  const spendingByDate = useMemo(() => {
+    const dateTotals = {};
+    expenses.forEach(expense => {
+      const expenseDate = parseTransactionDate(expense.date);
+      if (expenseDate) {
+        const dateKey = expenseDate.toISOString().split('T')[0];
+        if (!dateTotals[dateKey]) {
+          dateTotals[dateKey] = 0;
+        }
+        dateTotals[dateKey] += Math.abs(expense.amount);
+      }
+    });
+    return dateTotals;
+  }, [expenses]);
+
   // Generate multiple insights based on analysis (changes daily based on date)
   const generateInsights = useMemo(() => {
     const today = new Date();
@@ -259,12 +359,12 @@ function MoodPage({ transactions = [] }) {
 
     // Fallback messages when data is limited
     const fallbackMessages = [
-      "💡 Keep tracking your expenses with moods! The more you record, the more insights you'll discover about your spending patterns.",
-      "💡 As you add more transactions with moods, you'll start seeing interesting patterns in your emotional spending habits.",
+      "💡 Keep tracking your expenses! The more you record, the more insights you'll discover about your spending patterns.",
+      "💡 As you add more transactions, you'll start seeing interesting patterns in your spending habits.",
       "💡 Tomorrow you'll see more insights as your spending data grows. Keep tracking!"
     ];
 
-    if (totalMoodCount === 0) {
+    if (expenses.length === 0) {
       // Return 3 fallback messages when no data
       const selectedFallbacks = [];
       for (let i = 0; i < 3; i++) {
@@ -321,57 +421,142 @@ function MoodPage({ transactions = [] }) {
       }
     });
 
-    // Generate all possible insights
+    // Generate all possible insights (mood-based and general)
     const allInsights = [];
     
-    // Insight 1: Average transaction comparison
-    if (averages.length >= 2 && highestMood && lowestMood) {
+    // === MOOD-BASED INSIGHTS ===
+    
+    // Insight 1: Average transaction comparison (mood-based)
+    if (totalMoodCount > 0 && averages.length >= 2 && highestMood && lowestMood) {
       allInsights.push(
         `💡 When ${highestMood.label.toLowerCase()}, your average transaction is $${formatCurrency(highestMood.average)} - the highest among all moods. That's ${diffPercentage}% more than when ${lowestMood.label.toLowerCase()} ($${formatCurrency(lowestMood.average)}).`
       );
     }
     
-    // Insight 2: Category analysis
-    const topMood = Object.keys(topCategories).length > 0 
-      ? Object.keys(topCategories).reduce((a, b) => 
-          categoryByMood[a] && categoryByMood[b] 
-            ? (Object.values(categoryByMood[a]).reduce((sum, d) => sum + (d.total || 0), 0) > 
-               Object.values(categoryByMood[b]).reduce((sum, d) => sum + (d.total || 0), 0) ? a : b)
-            : a
-        )
-      : null;
-    if (topMood && topCategories[topMood]) {
-      const cat = topCategories[topMood];
-      const moodLabel = moodStats[topMood]?.label || topMood;
+    // Insight 2: Category analysis (mood-based)
+    if (totalMoodCount > 0) {
+      const topMood = Object.keys(topCategories).length > 0 
+        ? Object.keys(topCategories).reduce((a, b) => 
+            categoryByMood[a] && categoryByMood[b] 
+              ? (Object.values(categoryByMood[a]).reduce((sum, d) => sum + (d.total || 0), 0) > 
+                 Object.values(categoryByMood[b]).reduce((sum, d) => sum + (d.total || 0), 0) ? a : b)
+              : a
+          )
+        : null;
+      if (topMood && topCategories[topMood]) {
+        const cat = topCategories[topMood];
+        const moodLabel = moodStats[topMood]?.label || topMood;
+        allInsights.push(
+          `💡 When ${moodLabel.toLowerCase()}, you spend most in '${cat.category}' category ($${formatCurrency(cat.total)}, ${cat.count} transactions). Notice the connection between your emotions and spending categories.`
+        );
+      }
+    }
+    
+    // Insight 3: Time of day analysis (mood-based)
+    if (totalMoodCount > 0) {
+      const moodsWithTime = Object.keys(dominantTimeOfDay);
+      if (moodsWithTime.length > 0) {
+        const mood = moodsWithTime[0];
+        const time = dominantTimeOfDay[mood];
+        const moodLabel = moodStats[mood]?.label || mood;
+        const timeLabel = time === 'Morning' ? 'morning' : time === 'Afternoon' ? 'afternoon' : time === 'Evening' ? 'evening' : 'night';
+        allInsights.push(
+          `💡 When ${moodLabel.toLowerCase()}, you tend to spend during the ${timeLabel}. Recognizing your emotional spending time patterns can help you make more rational decisions.`
+        );
+      }
+    }
+    
+    // Insight 4: Trend analysis (mood-based)
+    if (totalMoodCount > 0) {
+      const significantTrends = Object.entries(trendChanges)
+        .filter(([_, change]) => Math.abs(change) > 10)
+        .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]));
+      
+      if (significantTrends.length > 0) {
+        const [mood, change] = significantTrends[0];
+        const moodLabel = moodStats[mood]?.label || mood;
+        const direction = change > 0 ? 'increased' : 'decreased';
+        const absChange = Math.abs(Math.round(change));
+        allInsights.push(
+          `💡 Your ${moodLabel.toLowerCase()} spending this week ${direction} by ${absChange}% compared to last week. Notice the recent changes in your emotional spending patterns.`
+        );
+      }
+    }
+    
+    // === GENERAL SPENDING INSIGHTS (NOT MOOD-SPECIFIC) ===
+    
+    // Insight 5: Overall category analysis
+    const sortedCategories = Object.entries(overallCategoryAnalysis)
+      .map(([cat, data]) => ({ category: cat, total: data.total, count: data.count }))
+      .sort((a, b) => b.total - a.total);
+    if (sortedCategories.length > 0) {
+      const topCategory = sortedCategories[0];
+      const categoryPercentage = expenses.length > 0 
+        ? Math.round((topCategory.count / expenses.length) * 100)
+        : 0;
       allInsights.push(
-        `💡 When ${moodLabel.toLowerCase()}, you spend most in '${cat.category}' category ($${formatCurrency(cat.total)}, ${cat.count} transactions). Notice the connection between your emotions and spending categories.`
+        `💡 Your top spending category is '${topCategory.category}' with $${formatCurrency(topCategory.total)} (${topCategory.count} transactions, ${categoryPercentage}% of all expenses). Consider if this aligns with your priorities.`
       );
     }
     
-    // Insight 3: Time of day analysis
-    const moodsWithTime = Object.keys(dominantTimeOfDay);
-    if (moodsWithTime.length > 0) {
-      const mood = moodsWithTime[0];
-      const time = dominantTimeOfDay[mood];
-      const moodLabel = moodStats[mood]?.label || mood;
-      const timeLabel = time === 'Morning' ? 'morning' : time === 'Afternoon' ? 'afternoon' : time === 'Evening' ? 'evening' : 'night';
+    // Insight 6: Overall time of day analysis
+    const sortedTimes = Object.entries(overallTimeOfDayAnalysis)
+      .filter(([time]) => time !== 'Unknown')
+      .sort((a, b) => b[1] - a[1]);
+    if (sortedTimes.length > 0 && sortedTimes[0][1] > 0) {
+      const topTime = sortedTimes[0];
+      const timeLabel = topTime[0].toLowerCase();
+      const timePercentage = expenses.length > 0 
+        ? Math.round((topTime[1] / expenses.length) * 100)
+        : 0;
       allInsights.push(
-        `💡 When ${moodLabel.toLowerCase()}, you tend to spend during the ${timeLabel}. Recognizing your emotional spending time patterns can help you make more rational decisions.`
+        `💡 You make ${timePercentage}% of your purchases during the ${timeLabel}. Being aware of your spending time patterns can help you make more mindful decisions.`
       );
     }
     
-    // Insight 4: Trend analysis
-    const significantTrends = Object.entries(trendChanges)
-      .filter(([_, change]) => Math.abs(change) > 10)
-      .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]));
-    
-    if (significantTrends.length > 0) {
-      const [mood, change] = significantTrends[0];
-      const moodLabel = moodStats[mood]?.label || mood;
-      const direction = change > 0 ? 'increased' : 'decreased';
-      const absChange = Math.abs(Math.round(change));
+    // Insight 7: Day of week analysis
+    const sortedDays = Object.entries(overallDayOfWeekAnalysis)
+      .map(([day, data]) => ({ day, total: data.total, count: data.count, avg: data.count > 0 ? data.total / data.count : 0 }))
+      .filter(d => d.count > 0)
+      .sort((a, b) => b.avg - a.avg);
+    if (sortedDays.length > 0) {
+      const topDay = sortedDays[0];
       allInsights.push(
-        `💡 Your ${moodLabel.toLowerCase()} spending this week ${direction} by ${absChange}% compared to last week. Notice the recent changes in your emotional spending patterns.`
+        `💡 ${topDay.day} is your highest spending day with an average of $${formatCurrency(topDay.avg)} per transaction. Plan your budget accordingly for this day.`
+      );
+    }
+    
+    // Insight 8: Overall trend analysis
+    if (overallTrendAnalysis.lastWeekTotal > 0) {
+      const trendChange = ((overallTrendAnalysis.thisWeekTotal - overallTrendAnalysis.lastWeekTotal) / overallTrendAnalysis.lastWeekTotal) * 100;
+      if (Math.abs(trendChange) > 10) {
+        const direction = trendChange > 0 ? 'increased' : 'decreased';
+        const absChange = Math.abs(Math.round(trendChange));
+        allInsights.push(
+          `💡 Your spending this week ${direction} by ${absChange}% compared to last week ($${formatCurrency(overallTrendAnalysis.thisWeekTotal)} vs $${formatCurrency(overallTrendAnalysis.lastWeekTotal)}).`
+        );
+      }
+    }
+    
+    // Insight 9: Average transaction amount
+    if (expenses.length > 0 && averageTransactionAmount > 0) {
+      allInsights.push(
+        `💡 Your average transaction amount is $${formatCurrency(averageTransactionAmount)}. Tracking this helps you understand your typical spending patterns.`
+      );
+    }
+    
+    // Insight 10: Highest spending day
+    const dateEntries = Object.entries(spendingByDate);
+    if (dateEntries.length > 0) {
+      const sortedDates = dateEntries
+        .map(([date, total]) => ({ date, total }))
+        .sort((a, b) => b.total - a.total);
+      const highestDay = sortedDates[0];
+      const dateObj = new Date(highestDay.date);
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const formattedDate = `${monthNames[dateObj.getMonth()]} ${dateObj.getDate()}`;
+      allInsights.push(
+        `💡 Your highest spending day was ${formattedDate} with $${formatCurrency(highestDay.total)}. Review what made that day different.`
       );
     }
 
@@ -436,7 +621,11 @@ function MoodPage({ transactions = [] }) {
     }
     
     return selectedFallbacks;
-  }, [moodStats, categoryByMood, timeOfDayByMood, trendAnalysis, totalMoodCount]);
+  }, [
+    moodStats, categoryByMood, timeOfDayByMood, trendAnalysis, totalMoodCount,
+    overallCategoryAnalysis, overallTimeOfDayAnalysis, overallDayOfWeekAnalysis,
+    overallTrendAnalysis, averageTransactionAmount, spendingByDate, expenses
+  ]);
 
   // Reset index when insights change
   useEffect(() => {
@@ -473,7 +662,7 @@ function MoodPage({ transactions = [] }) {
               {insights.length > 1 && currentInsightIndex > 0 && (
                 <button
                   onClick={() => setCurrentInsightIndex(currentInsightIndex - 1)}
-                  className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white shadow-md flex items-center justify-center hover:bg-gray-100 transition-colors"
+                  className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm shadow-md flex items-center justify-center hover:bg-white transition-colors opacity-60 hover:opacity-100"
                   aria-label="Previous insight"
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -486,7 +675,7 @@ function MoodPage({ transactions = [] }) {
               {insights.length > 1 && currentInsightIndex < insights.length - 1 && (
                 <button
                   onClick={() => setCurrentInsightIndex(currentInsightIndex + 1)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white shadow-md flex items-center justify-center hover:bg-gray-100 transition-colors"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm shadow-md flex items-center justify-center hover:bg-white transition-colors opacity-60 hover:opacity-100"
                   aria-label="Next insight"
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -515,10 +704,10 @@ function MoodPage({ transactions = [] }) {
                     return (
                       <div
                         key={index}
-                        className="flex-shrink-0 px-4 py-4"
+                        className="flex-shrink-0 px-6 py-4"
                         style={{ width: `${100 / insights.length}%` }}
                       >
-                        <p className="text-sm text-gray-800 leading-relaxed whitespace-normal break-words">{displayText}</p>
+                        <p className="text-sm text-gray-800 leading-relaxed whitespace-normal break-words pr-2 pl-2">{displayText}</p>
                       </div>
                     );
                   })}
