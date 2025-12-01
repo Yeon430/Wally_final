@@ -1,4 +1,4 @@
-const CACHE_NAME = 'chattypay-v1';
+const CACHE_NAME = 'chattypay-v4'; // 버전 업데이트하여 캐시 무효화
 const urlsToCache = [
   '/',
   '/index.html'
@@ -42,6 +42,22 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   // GET 요청만 캐시
   if (event.request.method !== 'GET') {
+    return;
+  }
+
+  // HTML 파일은 항상 네트워크에서 가져오고, 캐시는 백업으로만 사용
+  if (event.request.destination === 'document' || event.request.url.includes('/index.html')) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          // 네트워크에서 가져온 응답 반환
+          return response;
+        })
+        .catch(() => {
+          // 네트워크 실패 시에만 캐시 사용
+          return caches.match(event.request);
+        })
+    );
     return;
   }
 
