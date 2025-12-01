@@ -98,7 +98,31 @@ function AppContent() {
         notes: t.notes || null
       }));
 
-      setTransactions(formattedTransactions);
+      // Remove duplicates based on id, or if id is different but content is identical
+      const uniqueTransactions = [];
+      const seen = new Set();
+      const seenContent = new Set();
+      
+      for (const txn of formattedTransactions) {
+        // First check by ID (most reliable)
+        if (seen.has(txn.id)) {
+          console.log('Duplicate transaction by ID:', txn.id);
+          continue;
+        }
+        seen.add(txn.id);
+        
+        // Also check by content (date, time, description, amount, type)
+        const contentKey = `${txn.date}|${txn.time}|${txn.description}|${Math.abs(txn.amount)}|${txn.type}`;
+        if (seenContent.has(contentKey)) {
+          console.log('Duplicate transaction by content:', contentKey);
+          continue;
+        }
+        seenContent.add(contentKey);
+        
+        uniqueTransactions.push(txn);
+      }
+
+      setTransactions(uniqueTransactions);
     } catch (error) {
       console.error('Error loading transactions:', error);
     } finally {

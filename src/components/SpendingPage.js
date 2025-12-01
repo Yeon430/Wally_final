@@ -131,6 +131,7 @@ function SpendingPage({ transactions, setTransactions, onDeleteTransaction }) {
   const [swipedTransactionId, setSwipedTransactionId] = useState(null);
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
+  const [savingTransaction, setSavingTransaction] = useState(false);
   const [categoryIconMap, setCategoryIconMap] = useState(() => {
     try {
       const stored = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEY_CATEGORY_ICONS) : null;
@@ -515,6 +516,7 @@ function SpendingPage({ transactions, setTransactions, onDeleteTransaction }) {
 
   const handleAddTransaction = async () => {
     if (!amount.trim() || parseFloat(amount) <= 0) return;
+    if (savingTransaction) return; // Prevent double submission
     
     // Format date for storage
     const formattedDate = transactionDate ? formatDateToDisplay(transactionDate) : (() => {
@@ -609,19 +611,51 @@ function SpendingPage({ transactions, setTransactions, onDeleteTransaction }) {
       trackTransactionAdded(parseFloat(amount), category);
     }
     
-    // Update local state immediately
-    setTransactions([newTransaction, ...transactions]);
-    setShowModal(false);
-    setDescription('');
-    setAmount('');
-    setNotes('');
-    setTransactionDate('');
-    setCategory(expenseCategories[0] || 'shopping');
-    setMood(null);
+    // Set saving state to prevent double submission
+    setSavingTransaction(true);
     
-    // Save to Supabase if logged in
+    // Save to Supabase if logged in (before updating local state to check for duplicates)
+    let supabaseId = null;
     if (user) {
       try {
+        // Check for duplicate in Supabase (same date, time, description, amount within last 30 seconds)
+        const fiveSecondsAgo = new Date();
+        fiveSecondsAgo.setSeconds(fiveSecondsAgo.getSeconds() - 30);
+        
+        const { data: existingTransactions, error: checkError } = await supabase
+          .from('transactions')
+          .select('id, date, time, description, amount, type')
+          .eq('user_id', user.id)
+          .eq('date', formattedDate)
+          .eq('time', transactionTime)
+          .eq('description', transactionDescription || '')
+          .eq('amount', Math.abs(parseFloat(amount)))
+          .eq('type', transactionType)
+          .gte('created_at', fiveSecondsAgo.toISOString())
+          .limit(1);
+        
+        if (checkError) {
+          console.error('Error checking for duplicates:', checkError);
+        }
+        
+        if (existingTransactions && existingTransactions.length > 0) {
+          console.log('Duplicate transaction found in Supabase, skipping insert');
+          setSavingTransaction(false);
+          setShowModal(false);
+          setDescription('');
+          setAmount('');
+          setNotes('');
+          setTransactionDate('');
+          setCategory(expenseCategories[0] || 'shopping');
+          setMood(null);
+          // Reload transactions to sync with Supabase
+          if (onDeleteTransaction) {
+            // If parent provides reload function, use it
+            window.location.reload();
+          }
+          return;
+        }
+        
         const { data, error } = await supabase
           .from('transactions')
           .insert({
@@ -640,22 +674,49 @@ function SpendingPage({ transactions, setTransactions, onDeleteTransaction }) {
         
         if (error) {
           console.error('Error saving transaction to Supabase:', error);
-          // Show error to user but don't remove from local state
+          setSavingTransaction(false);
+          // Show error to user
           alert(`저장 중 오류가 발생했습니다: ${error.message}`);
+          return; // Don't update local state if save failed
         } else if (data) {
-          // Update transaction with Supabase ID for consistency
-          setTransactions(prev => prev.map(t => 
-            t.id === newTransaction.id 
-              ? { ...t, id: data.id }
-              : t
-          ));
+          supabaseId = data.id;
         }
       } catch (error) {
         console.error('Error saving transaction to Supabase:', error);
-        // Show error to user but don't remove from local state
+        setSavingTransaction(false);
+        // Show error to user
         alert(`저장 중 오류가 발생했습니다: ${error.message || '알 수 없는 오류'}`);
+        return; // Don't update local state if save failed
       }
     }
+    
+    // Update local state with Supabase ID if available
+    // Check if transaction already exists in local state before adding
+    const finalTransaction = supabaseId ? { ...newTransaction, id: supabaseId } : newTransaction;
+    
+    // Check for duplicate in local state before adding
+    const localDuplicate = transactions.find(t => 
+      t.id === finalTransaction.id || 
+      (t.date === finalTransaction.date &&
+       t.time === finalTransaction.time &&
+       t.description === finalTransaction.description &&
+       Math.abs(Math.abs(t.amount) - Math.abs(finalTransaction.amount)) < 0.01 &&
+       t.type === finalTransaction.type)
+    );
+    
+    if (!localDuplicate) {
+      setTransactions([finalTransaction, ...transactions]);
+    } else {
+      console.log('Duplicate transaction in local state, skipping update');
+    }
+    setShowModal(false);
+    setDescription('');
+    setAmount('');
+    setNotes('');
+    setTransactionDate('');
+    setCategory(expenseCategories[0] || 'shopping');
+    setMood(null);
+    setSavingTransaction(false);
   };
 
   const handleAddCategory = async () => {
@@ -1359,10 +1420,10 @@ function SpendingPage({ transactions, setTransactions, onDeleteTransaction }) {
                 </button>
                 <button
                   onClick={handleAddTransaction}
-                  disabled={!amount.trim() || parseFloat(amount) <= 0}
+                  disabled={!amount.trim() || parseFloat(amount) <= 0 || savingTransaction}
                   className="flex-1 bg-black text-white py-4 rounded-lg font-medium text-base disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {editingTransaction ? 'Save' : 'Add'}
+                  {savingTransaction ? 'Saving...' : (editingTransaction ? 'Save' : 'Add')}
                 </button>
               </div>
             </div>
