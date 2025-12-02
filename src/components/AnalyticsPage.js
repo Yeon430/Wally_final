@@ -116,6 +116,20 @@ function AnalyticsPage({ transactions = [], onDateClick, autoOpenTracker = false
   const parseExpenseDate = (dateStr) => {
     if (!dateStr) return null;
 
+    // Try YYYY-MM-DD format first (most reliable, avoids timezone issues)
+    const yyyyMMddMatch = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (yyyyMMddMatch) {
+      const year = parseInt(yyyyMMddMatch[1], 10);
+      const month = parseInt(yyyyMMddMatch[2], 10) - 1; // 0-indexed
+      const day = parseInt(yyyyMMddMatch[3], 10);
+      if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
+        const parsedDate = new Date(year, month, day);
+        parsedDate.setHours(0, 0, 0, 0);
+        return parsedDate;
+      }
+    }
+
+    // Fallback to other formats
     const hasFourDigitYear = /\d{4}/.test(dateStr);
     const directParse = hasFourDigitYear ? new Date(dateStr) : null;
     if (directParse && !isNaN(directParse)) {
@@ -816,7 +830,6 @@ function AnalyticsPage({ transactions = [], onDateClick, autoOpenTracker = false
       ? selectedMonthIndex
       : monthOptions[0];
     const selectedEntry = getMonthlyEntry(selectedYear, safeMonthIndex);
-    const selectedTotal = selectedEntry.total ?? 0;
 
     // Get expenses for selected month
     const selectedMonthExpenses = expenses.filter(expense => {
@@ -838,6 +851,9 @@ function AnalyticsPage({ transactions = [], onDateClick, autoOpenTracker = false
       }
       categoryTotals[category] += Math.abs(expense.amount);
     });
+
+    // Calculate total from actual filtered expenses (more reliable than monthlyTotalsMap)
+    const selectedTotal = Object.values(categoryTotals).reduce((sum, amount) => sum + amount, 0);
 
     // Sort categories by amount (descending)
     const sortedCategories = Object.entries(categoryTotals)

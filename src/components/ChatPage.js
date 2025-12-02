@@ -47,6 +47,7 @@ function ChatPage({ transactions }) {
   });
   const [activeProfileInfo, setActiveProfileInfo] = useState(null);
   const [infoCardStyles, setInfoCardStyles] = useState(null);
+  const [userNickname, setUserNickname] = useState(null);
   // Use special IDs for initial messages to avoid conflicts
   const INITIAL_CATTY_ID = -1;
   const INITIAL_FUTUREME_ID = -2;
@@ -438,6 +439,32 @@ function ChatPage({ transactions }) {
     loadSettings();
   }, [user]);
 
+  // Load user nickname from profile
+  useEffect(() => {
+    const loadNickname = async () => {
+      if (!user) {
+        setUserNickname(null);
+        return;
+      }
+      
+      try {
+        const { data, error } = await supabase
+          .from('user_profiles')
+          .select('nickname')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        
+        if (data?.nickname) {
+          setUserNickname(data.nickname);
+        }
+      } catch (error) {
+        console.error('Error loading nickname:', error);
+      }
+    };
+    
+    loadNickname();
+  }, [user]);
+
   // Save aiEnabled to Supabase whenever it changes
   useEffect(() => {
     if (loadingSettings) return; // Don't save during initial load
@@ -696,6 +723,7 @@ function ChatPage({ transactions }) {
 
     const {
       balance = 0, totalExpenses = 0, totalIncomes = 0, expensesByCategory = {}, expensesByMood = {}, itemCounts = {},
+      todayTotal = 0, todayByCategory = {}, todayExpenses = [],
       thisWeekTotal = 0, thisWeekByCategory = {}, thisWeekExpenses = [],
       thisMonthTotal = 0, thisMonthByCategory = {}, thisMonthItemCounts = {}, thisMonthExpenses = [],
       goalPeriodTotal = 0, goalPeriodExpenses = [], expensesByDay = {}, avgDailySpending = 0, daysWithSpending = 0,
@@ -913,6 +941,11 @@ ${eventContext || ''}${seasonalContext || ''}
 
 📈 SPENDING DATA FOR ANALYSIS:
 
+**Today Summary:**
+- Total: $${safeFormat(todayTotal)}
+- By Category: ${JSON.stringify(todayByCategory, null, 2)}
+- Transactions: ${JSON.stringify(todayExpenses.slice(0, 10), null, 2)}
+
 **This Week Summary:**
 - Total: $${safeFormat(thisWeekTotal)}
 - By Category: ${JSON.stringify(thisWeekByCategory, null, 2)}
@@ -951,6 +984,7 @@ ${JSON.stringify(thisWeekExpenses.slice(0, 10).map(t => ({
 
 💬 Response Guidelines:
 - CRITICAL: Respond in the SAME language as the user's message
+${userNickname ? `- IMPORTANT: The user's nickname is "${userNickname}". Occasionally use their nickname instead of "you" or "your" to make responses more personal, but don't overuse it. Mix it naturally - use "you/your" most of the time (70-80%), and sprinkle in "${userNickname}" or "${userNickname}'s" occasionally (20-30% of the time) for variety. For example: "Your spending..." (most common) vs "${userNickname}'s spending..." (occasional). Keep it natural and conversational.` : ''}
 - DO NOT provide analysis for greetings or casual conversation
 - ONLY analyze when user asks about:
   * Purchases they want to make ("니트 사려고 하는데", "want to buy", "should I buy")
@@ -1019,6 +1053,7 @@ User message: ${userMessage}`;
 📊 SPENDING DATA (Use ONLY when relevant to the conversation):
 
 **Quick Summary (use when needed):**
+- Today Total: $${safeFormat(todayTotal)}
 - This Week Total: $${safeFormat(thisWeekTotal)}
 - This Month Total: $${safeFormat(thisMonthTotal)}
 - Spending Percentage: ${spendingPercentage}% of $${target} goal
@@ -1036,6 +1071,7 @@ User message: ${userMessage}`;
 
 💬 Response Guidelines:
 - CRITICAL: Respond in the SAME language as the user's message
+${userNickname ? `- IMPORTANT: The user's nickname is "${userNickname}". Sometimes use their nickname instead of "you" to make it more personal, but keep it natural. Use "you" most of the time (70-80%), and occasionally use "${userNickname}" (20-30% of the time). For example: "If you buy that..." (most common) vs "If ${userNickname} buys that..." (occasional).` : ''}
 - Keep it SHORT and emotional (1-2 sentences max)
 - If user writes in Korean, respond in Korean (use casual ~어/~야 endings, like talking to yourself)
 - If user writes in English, respond in English (emotional, personal tone)
@@ -1110,10 +1146,12 @@ User message: ${userMessage}`;
 📊 SPENDING DATA (Use ONLY when relevant to stop them from spending):
 
 **Quick Summary (use when user wants to buy something):**
+- Today Total: $${safeFormat(todayTotal)}
 - This Week Total: $${safeFormat(thisWeekTotal)}
 - This Month Total: $${safeFormat(thisMonthTotal)}
 - Spending Percentage: ${spendingPercentage}% of $${target} goal
 - This Month Item Purchase Counts: ${JSON.stringify(thisMonthItemCounts, null, 2)}
+- Today by Category: ${JSON.stringify(todayByCategory, null, 2)}
 - This Week by Category: ${JSON.stringify(thisWeekByCategory, null, 2)}
 - This Month by Category: ${JSON.stringify(thisMonthByCategory, null, 2)}
 
@@ -1127,6 +1165,7 @@ User message: ${userMessage}`;
 
 💬 Response Guidelines:
 - CRITICAL: Respond in the SAME language as the user's message
+${userNickname ? `- IMPORTANT: The user's nickname is "${userNickname}". Sometimes use their nickname instead of "you" to make it more friendly, but don't overdo it. Use "you" most of the time (70-80%), and occasionally use "${userNickname}" (20-30% of the time) for variety. For example: "You've spent..." (most common) vs "${userNickname} has spent..." (occasional).` : ''}
 - Keep it SHORT and punchy (1-2 sentences max)
 - If user writes in Korean, respond in Korean (use casual ~어/~야 endings, like a friend)
 - If user writes in English, respond in English (casual, friendly tone)
@@ -1217,6 +1256,19 @@ User message: ${userMessage}`;
         const today = new Date();
         const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         
+        // Try YYYY-MM-DD format first (most reliable, avoids timezone issues)
+        const yyyyMMddMatch = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+        if (yyyyMMddMatch) {
+          const year = parseInt(yyyyMMddMatch[1], 10);
+          const month = parseInt(yyyyMMddMatch[2], 10) - 1; // 0-indexed
+          const day = parseInt(yyyyMMddMatch[3], 10);
+          if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
+            const parsedDate = new Date(year, month, day);
+            parsedDate.setHours(0, 0, 0, 0);
+            return parsedDate;
+          }
+        }
+        
         // Format like "Nov 4" or "Nov 04"
         const dateMatch = dateStr.match(/(\w+)\s+(\d+)/);
         if (dateMatch) {
@@ -1270,17 +1322,30 @@ User message: ${userMessage}`;
         return expenseDate && expenseDate >= weekAgo && expenseDate <= today;
       });
       
+      // 오늘의 지출 계산
+      const todayExpenses = expenses.filter(t => {
+        const expenseDate = parseExpenseDate(t.date);
+        return expenseDate && expenseDate.getTime() === today.getTime();
+      });
+      
       const thisMonthExpenses = expenses.filter(t => {
         const expenseDate = parseExpenseDate(t.date);
         return expenseDate && expenseDate >= firstDayOfMonth && expenseDate <= today;
       });
       
-      // Calculate weekly and monthly totals
+      // Calculate weekly, daily, and monthly totals
       const thisWeekTotal = thisWeekExpenses.reduce((sum, t) => sum + Math.abs(t.amount), 0);
+      const todayTotal = todayExpenses.reduce((sum, t) => sum + Math.abs(t.amount), 0);
       const thisMonthTotal = thisMonthExpenses.reduce((sum, t) => sum + Math.abs(t.amount), 0);
       
       // Group by category (all time, this week, this month)
       const expensesByCategory = expenses.reduce((acc, t) => {
+        const cat = t.category || 'other';
+        acc[cat] = (acc[cat] || 0) + Math.abs(t.amount);
+        return acc;
+      }, {});
+      
+      const todayByCategory = todayExpenses.reduce((acc, t) => {
         const cat = t.category || 'other';
         acc[cat] = (acc[cat] || 0) + Math.abs(t.amount);
         return acc;
@@ -1447,6 +1512,19 @@ User message: ${userMessage}`;
         expensesByCategory,
         expensesByMood,
         itemCounts,
+        
+        // Today's Spending
+        todayTotal,
+        todayByCategory,
+        todayExpenses: todayExpenses.map(t => ({
+          date: t.date || 'no date',
+          time: t.time || 'no time',
+          description: t.description,
+          amount: Math.abs(t.amount),
+          category: t.category || 'none',
+          mood: t.mood || 'none',
+          notes: t.notes || null
+        })),
         
         // This Week Spending
         thisWeekTotal,
