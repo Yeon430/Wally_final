@@ -1415,9 +1415,6 @@ User message: ${userMessage}`;
         month: { days: 30, label: '1 Month' }
       };
       const daysInPeriod = periodConfig[period]?.days || 30;
-      const spendingPercentage = target > 0 ? Math.round((totalExpenses / target) * 100) : 0;
-      const saved = Math.max(0, target - totalExpenses);
-      const dailyGoal = Math.round(target / daysInPeriod);
       
       // Parse start date for goal period
       let goalStartDate = today;
@@ -1433,6 +1430,38 @@ User message: ${userMessage}`;
       const goalEndDate = new Date(goalStartDate);
       goalEndDate.setDate(goalStartDate.getDate() + daysInPeriod - 1);
       goalEndDate.setHours(23, 59, 59, 999);
+      
+      // Calculate actual spending up to today within the goal period (matching AnalyticsPage logic)
+      const todayTimestamp = today.getTime();
+      const startTimestamp = goalStartDate.getTime();
+      const endTimestamp = goalEndDate.getTime();
+      
+      let actualSpendingToDate = 0;
+      expenses.forEach(expense => {
+        if (expense.date) {
+          const expenseDate = parseExpenseDate(expense.date);
+          if (expenseDate) {
+            const expenseTimestamp = expenseDate.getTime();
+            // If expense date is within goal period and up to today, add to actual spending
+            if (expenseTimestamp >= startTimestamp && expenseTimestamp <= todayTimestamp && expenseTimestamp <= endTimestamp) {
+              actualSpendingToDate += Math.abs(expense.amount);
+            }
+          }
+        }
+      });
+      
+      // Calculate remaining budget and days (matching AnalyticsPage logic)
+      const remainingBudget = Math.max(0, target - actualSpendingToDate);
+      const remainingDays = Math.max(1, Math.ceil((endTimestamp - todayTimestamp) / (1000 * 60 * 60 * 24)) + 1); // +1 to include today
+      
+      // Calculate dynamic daily goal: remaining budget divided by remaining days
+      // If we're past the end date, use the original calculation
+      const dailyGoal = todayTimestamp > endTimestamp 
+        ? Math.round(target / daysInPeriod)
+        : Math.round(remainingBudget / remainingDays);
+      
+      const spendingPercentage = target > 0 ? Math.round((actualSpendingToDate / target) * 100) : 0;
+      const saved = Math.max(0, target - actualSpendingToDate);
       
       const goalPeriodExpenses = expenses.filter(t => {
         const expenseDate = parseExpenseDate(t.date);
