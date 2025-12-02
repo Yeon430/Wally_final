@@ -641,13 +641,13 @@ function SpendingPage({ transactions, setTransactions, onDeleteTransaction }) {
         if (existingTransactions && existingTransactions.length > 0) {
           console.log('Duplicate transaction found in Supabase, skipping insert');
           setSavingTransaction(false);
-          setShowModal(false);
-          setDescription('');
-          setAmount('');
-          setNotes('');
-          setTransactionDate('');
-          setCategory(expenseCategories[0] || 'shopping');
-          setMood(null);
+    setShowModal(false);
+    setDescription('');
+    setAmount('');
+    setNotes('');
+    setTransactionDate('');
+    setCategory(expenseCategories[0] || 'shopping');
+    setMood(null);
           // Reload transactions to sync with Supabase
           if (onDeleteTransaction) {
             // If parent provides reload function, use it

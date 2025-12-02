@@ -34,47 +34,54 @@ export const AuthProvider = ({ children }) => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      // Google OAuth 로그인 후 기존 user_metadata 보존
+      console.log('[AuthContext] onAuthStateChange event:', event, 'hasSession:', !!session);
+      
+      // 먼저 사용자 설정하고 로딩 종료 (블로킹하지 않음)
+      // 이렇게 하면 Google OAuth 처리가 느려도 앱이 멈추지 않음
+      setUser(session?.user ?? null);
+      setLoading(false);
+      
+      // Google OAuth 처리는 백그라운드에서 비동기로 실행 (로딩을 블로킹하지 않음)
       if (event === 'SIGNED_IN' && session?.user) {
-        // Google OAuth로 로그인한 경우 (app_metadata에 provider 정보가 있음)
         const isGoogleLogin = session.user.app_metadata?.provider === 'google';
         
         if (isGoogleLogin) {
-          // 최신 user 정보 가져오기 (user_metadata 포함)
-          const { data: { user: latestUser } } = await supabase.auth.getUser();
-          
-          if (latestUser?.user_metadata) {
-            // 기존에 저장된 name, nickname, avatar_url이 있으면 보존
-            const existingName = latestUser.user_metadata.name;
-            const existingNickname = latestUser.user_metadata.nickname;
-            const existingAvatarUrl = latestUser.user_metadata.avatar_url;
-            
-            // Google에서 가져온 정보와 병합 (기존 정보 우선)
-            if (existingName || existingNickname || existingAvatarUrl) {
-              const mergedMetadata = {
-                ...latestUser.user_metadata,
-                name: existingName || latestUser.user_metadata.name,
-                nickname: existingNickname || latestUser.user_metadata.name,
-                avatar_url: existingAvatarUrl || latestUser.user_metadata.avatar_url,
-              };
+          // 비동기로 실행하되 로딩을 블로킹하지 않음
+          (async () => {
+            try {
+              const { data: { user: latestUser } } = await supabase.auth.getUser();
               
-              // 병합된 metadata로 업데이트
-              await supabase.auth.updateUser({
-                data: mergedMetadata
-              });
-              
-              // 세션 새로고침
-              const { data: { session: newSession } } = await supabase.auth.getSession();
-              setUser(newSession?.user ?? null);
-              setLoading(false);
-              return;
+              if (latestUser?.user_metadata) {
+                const existingName = latestUser.user_metadata.name;
+                const existingNickname = latestUser.user_metadata.nickname;
+                const existingAvatarUrl = latestUser.user_metadata.avatar_url;
+                
+                if (existingName || existingNickname || existingAvatarUrl) {
+                  const mergedMetadata = {
+                    ...latestUser.user_metadata,
+                    name: existingName || latestUser.user_metadata.name,
+                    nickname: existingNickname || latestUser.user_metadata.name,
+                    avatar_url: existingAvatarUrl || latestUser.user_metadata.avatar_url,
+                  };
+                  
+                  await supabase.auth.updateUser({
+                    data: mergedMetadata
+                  });
+                  
+                  // 업데이트 후 사용자 정보 새로고침 (로딩 상태는 변경하지 않음)
+                  const { data: { session: newSession } } = await supabase.auth.getSession();
+                  if (newSession?.user) {
+                    setUser(newSession.user);
+                  }
+                }
+              }
+            } catch (error) {
+              console.error('[AuthContext] Error updating Google OAuth metadata:', error);
+              // 에러가 발생해도 앱은 계속 실행됨 (이미 setLoading(false)가 호출됨)
             }
-          }
+          })();
         }
       }
-      
-      setUser(session?.user ?? null);
-      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
