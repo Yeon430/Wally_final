@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase';
 import { trackTransactionAdded } from '../lib/analytics';
 
 const STORAGE_KEY_CATEGORIES = 'chatty_wallet_expense_categories';
-const DEFAULT_CATEGORIES = ['shopping', 'food', 'transport', 'entertainment'];
+const DEFAULT_CATEGORIES = ['shopping', 'food', 'transport', 'entertainment', 'coffee', 'groceries', 'housing', 'health', 'education', 'travel'];
 const STORAGE_KEY_CATEGORY_ICONS = 'chatty_wallet_category_icons';
 const CATEGORY_ICON_OPTIONS = [
   { key: 'shopping-bag', label: 'Shopping' },
@@ -13,13 +13,23 @@ const CATEGORY_ICON_OPTIONS = [
   { key: 'bus', label: 'Transport' },
   { key: 'controller', label: 'Entertainment' },
   { key: 'sparkles', label: 'Sparkles' },
-  { key: 'home', label: 'Home' }
+  { key: 'home', label: 'Home' },
+  { key: 'cart', label: 'Groceries' },
+  { key: 'heart', label: 'Health' },
+  { key: 'book', label: 'Education' },
+  { key: 'plane', label: 'Travel' }
 ];
 const DEFAULT_CATEGORY_ICON_MAP = {
   shopping: 'shopping-bag',
   food: 'coffee',
   transport: 'bus',
-  entertainment: 'controller'
+  entertainment: 'controller',
+  coffee: 'coffee',
+  groceries: 'cart',
+  housing: 'home',
+  health: 'heart',
+  education: 'book',
+  travel: 'plane'
 };
 const MOOD_EMOJIS = {
   happy: '😊',
@@ -100,6 +110,33 @@ const renderIconByKey = (key, size = 22) => {
         <svg {...commonProps}>
           <path d="M3 10l9-7 9 7"></path>
           <path d="M5 10v10h5v-6h4v6h5V10"></path>
+        </svg>
+      );
+    case 'cart':
+      return (
+        <svg {...commonProps}>
+          <circle cx="9" cy="21" r="1"></circle>
+          <circle cx="20" cy="21" r="1"></circle>
+          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+        </svg>
+      );
+    case 'heart':
+      return (
+        <svg {...commonProps}>
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+        </svg>
+      );
+    case 'book':
+      return (
+        <svg {...commonProps}>
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+        </svg>
+      );
+    case 'plane':
+      return (
+        <svg {...commonProps}>
+          <path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"></path>
         </svg>
       );
     default:
