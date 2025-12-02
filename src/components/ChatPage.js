@@ -1759,27 +1759,42 @@ User message: ${userMessage}`;
         .chat-messages-container::-webkit-scrollbar {
           display: none;
         }
+        .mesh-gradient-bg {
+          background: linear-gradient(135deg, #FFE5F5 0%, #F5E6FF 50%, #E6F0FF 100%);
+          position: absolute;
+          inset: 0;
+          opacity: 0.6;
+          z-index: 0;
+        }
       `}</style>
-      <div className="h-full flex flex-col pb-20 overflow-hidden">
+      <div className="h-full flex flex-col pb-20 overflow-hidden relative">
+      {/* Mesh Gradient Background */}
+      <div className="mesh-gradient-bg"></div>
+      
+      {/* Content */}
+      <div className="h-full flex flex-col relative z-10">
       {/* Chat Header */}
-      <div className="p-6 pb-4 bg-black border-b border-gray-800 rounded-b-[16px]">
-        <div className="flex items-start gap-4 mb-4">
-          {/* Star/Fan Icon */}
+      <div className="p-6 pb-4 bg-transparent">
+        <div className="flex items-start gap-3 mb-4">
+          {/* Star Icon */}
           <div className="flex-shrink-0">
-            <img src="/image.png" alt="Chat Room Icon" className="w-10 h-10 brightness-0 invert" />
+            <svg width="45" height="45" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="#F35DC8" opacity="0.7"/>
+              <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" stroke="#F35DC8" strokeWidth="1" opacity="0.5"/>
+            </svg>
           </div>
           
           {/* Text Section */}
           <div className="flex-1">
-            <h2 className="text-xl font-bold text-white mb-1">Chat Room</h2>
-            <p className="text-sm text-white/90">
+            <h2 className="text-2xl font-bold text-black mb-1" style={{fontFamily: 'Aldrich, sans-serif'}}>Your Wallys</h2>
+            <p className="text-base text-black" style={{fontFamily: 'Aldrich, sans-serif'}}>
               {Object.values(AI_CONFIG).filter(ai => aiEnabled[ai.id]).map(ai => ai.name).join(' & ')}
             </p>
           </div>
         </div>
         
         {/* Small Profile Avatars */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           {Object.values(AI_CONFIG).map((ai) => {
             const isInfoActive = activeProfileInfo === ai.id;
             const isEnabled = aiEnabled[ai.id];
@@ -1790,9 +1805,10 @@ User message: ${userMessage}`;
                     profileRefs.current[ai.id] = el;
                   }}
                   onClick={() => setActiveProfileInfo(prev => prev === ai.id ? null : ai.id)}
-                  className={`w-10 h-10 rounded-full border-2 border-white flex items-center justify-center transition-all relative overflow-hidden ${
+                  className={`w-10 h-10 rounded-full border-2 border-gray-300 flex items-center justify-center transition-all relative overflow-hidden ${
                     isEnabled ? 'opacity-100' : 'opacity-30 hover:opacity-50'
                   }`}
+                  style={{background: '#D9D9D9'}}
                   title={ai.name}
                 >
                   <img
@@ -1806,7 +1822,7 @@ User message: ${userMessage}`;
                     </div>
                   )}
                   {isInfoActive && (
-                    <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-white"></span>
+                    <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-black"></span>
                   )}
                 </button>
               </div>
@@ -1882,8 +1898,8 @@ User message: ${userMessage}`;
           
           return isAIMessage ? (
             <div key={uniqueKey} className="flex gap-3">
-              <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${aiConfig?.gradient || 'from-purple-400 to-pink-400'} flex items-center justify-center flex-shrink-0 p-0.5`}>
-                <div className="w-full h-full rounded-full bg-white flex items-center justify-center overflow-hidden">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0`} style={{background: '#D9D9D9'}}>
+                <div className="w-full h-full rounded-full flex items-center justify-center overflow-hidden">
                   <img
                     src={aiConfig?.avatar}
                     alt={aiConfig?.name || 'AI'}
@@ -1892,8 +1908,8 @@ User message: ${userMessage}`;
                 </div>
               </div>
               <div className="flex-1">
-                <div className="bg-gray-100 rounded-3xl rounded-tl-md p-4 inline-block max-w-xs">
-                  <p className="text-black text-[15px] leading-relaxed">{message.text}</p>
+                <div className="rounded-xl p-3 inline-block max-w-xs" style={{background: 'rgba(255, 255, 255, 0.5)', boxShadow: '0px 0px 2px 0px rgba(57, 57, 57, 0.25)'}}>
+                  <p className="text-black text-base leading-relaxed" style={{fontFamily: 'Sansation, Noto Sans KR, sans-serif'}}>{message.text}</p>
                 </div>
                 <p className="text-xs text-black opacity-40 mt-1 ml-2">{message.time}</p>
               </div>
@@ -1901,8 +1917,8 @@ User message: ${userMessage}`;
           ) : (
             <div key={uniqueKey} className="flex gap-3 justify-end">
               <div className="flex-1 text-right">
-                <div className="bg-black rounded-3xl rounded-tr-md p-4 inline-block max-w-xs">
-                  <p className="text-white text-[15px] leading-relaxed">{message.text}</p>
+                <div className="rounded-3xl p-3 inline-block max-w-xs" style={{background: 'rgba(255, 0, 182, 0.3)', boxShadow: '0px 0px 2px 0px rgba(57, 57, 57, 0.25)'}}>
+                  <p className="text-black text-base leading-normal" style={{fontFamily: 'Aldrich, sans-serif'}}>{message.text}</p>
                 </div>
                 <p className="text-xs text-black opacity-40 mt-1 mr-2">{message.time}</p>
               </div>
@@ -1911,8 +1927,8 @@ User message: ${userMessage}`;
         })}
         {isLoading && Object.keys(aiEnabled).filter(aiId => aiEnabled[aiId]).map((aiId) => (
           <div key={aiId} className="flex gap-3">
-            <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${AI_CONFIG[aiId].gradient} flex items-center justify-center flex-shrink-0 p-0.5`}>
-              <div className="w-full h-full rounded-full bg-white flex items-center justify-center overflow-hidden">
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0`} style={{background: '#D9D9D9'}}>
+              <div className="w-full h-full rounded-full flex items-center justify-center overflow-hidden">
                 <img
                   src={AI_CONFIG[aiId].avatar}
                   alt={AI_CONFIG[aiId].name}
@@ -1921,8 +1937,8 @@ User message: ${userMessage}`;
               </div>
             </div>
             <div className="flex-1">
-              <div className="bg-gray-100 rounded-3xl rounded-tl-md p-4 inline-block">
-                <p className="text-black text-[15px] leading-relaxed">Thinking...</p>
+              <div className="rounded-xl p-3 inline-block" style={{background: 'rgba(255, 255, 255, 0.5)', boxShadow: '0px 0px 2px 0px rgba(57, 57, 57, 0.25)'}}>
+                <p className="text-black text-base leading-relaxed">Thinking...</p>
               </div>
             </div>
           </div>
@@ -1933,30 +1949,39 @@ User message: ${userMessage}`;
       </div>
       
       {/* Chat Input */}
-      <div className="p-6 pt-4 border-t border-gray-100">
+      <div className="p-6 pt-4">
+        {/* Expand More Icon */}
+        <div className="flex justify-center mb-3">
+          <svg width="28" height="21" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M7 10L12 15L17 10" stroke="#000000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" opacity="0.3"/>
+          </svg>
+        </div>
+        
         <div className="flex gap-3 items-center">
           <input 
             type="text" 
-            placeholder="What do you want to buy?" 
+            placeholder="" 
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
             onKeyPress={handleKeyPress}
             disabled={isLoading}
-            className="flex-1 bg-gray-100 rounded-lg px-6 py-4 text-black placeholder-gray-400 border-none outline-none text-base disabled:opacity-50"
+            className="flex-1 bg-white rounded-full px-6 py-3 text-black placeholder-gray-400 outline-none text-base disabled:opacity-50"
+            style={{border: '1px solid #e0e0e0'}}
           />
           <button 
             onClick={handleSendMessage}
             disabled={isLoading || !inputMessage.trim()}
-            className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed transition"
+            className="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed transition"
             style={{
               background: isLoading || !inputMessage.trim() ? '#F7A9E0' : '#F35DC8'
             }}
           >
-            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M5 12L19 12M19 12L12 5M19 12L12 19" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" transform="rotate(45 12 12)"/>
             </svg>
           </button>
         </div>
+      </div>
       </div>
     </div>
     </>
