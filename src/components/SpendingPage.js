@@ -1091,11 +1091,10 @@ function SpendingPage({ transactions, setTransactions, onDeleteTransaction }) {
         </div>
         
         {/* Income/Expense Buttons */}
-        <div className="flex gap-3 mb-6">
+        <div className="flex gap-3 mb-6 w-full">
           <button 
-            className="income-button rounded-lg font-bold text-base flex items-center justify-center gap-2"
+            className="income-button rounded-lg font-bold text-base flex items-center justify-center gap-2 flex-1 w-full"
             style={{ 
-              width: '169px', 
               height: '50px',
               background: '#A4F982',
               color: '#000000',
@@ -1115,9 +1114,8 @@ function SpendingPage({ transactions, setTransactions, onDeleteTransaction }) {
             INCOME
           </button>
           <button 
-            className="expense-button rounded-lg font-bold text-base flex items-center justify-center gap-2"
+            className="expense-button rounded-lg font-bold text-base flex items-center justify-center gap-2 flex-1 w-full"
             style={{ 
-              width: '169px', 
               height: '50px',
               background: '#F35DC8',
               color: '#000000',
