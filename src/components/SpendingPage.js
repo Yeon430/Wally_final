@@ -1401,7 +1401,7 @@ function SpendingPage({ transactions, setTransactions, onDeleteTransaction }) {
               </div>
               {transactionType === 'expense' && (
                 <div>
-                  <label className="text-sm text-black opacity-60 mb-2 block">How do you feel?</label>
+                  <label className="text-sm text-black opacity-60 mb-2 block">What was your mood before buying?</label>
                   <div className="flex gap-3">
                     {[
                       { emoji: '😊', value: 'happy' },

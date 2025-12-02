@@ -664,9 +664,9 @@ function AnalyticsPage({ transactions = [], onDateClick, autoOpenTracker = false
               }
             }}
           >
-            <span className={`text-sm font-medium ${getTextColor(index)}`}>{dayNumber}</span>
+            <span className={`text-base font-medium ${getTextColor(index)}`}>{dayNumber}</span>
           </div>
-          <div className="mt-2 min-h-[24px] text-[10px] leading-tight text-center flex flex-col items-center justify-center">
+          <div className="mt-2 min-h-[24px] text-xs leading-tight text-center flex flex-col items-center justify-center">
             {daySpending > 0 && (
               <div className="font-medium" style={{ color: '#F35DC8' }}>
                 -${Math.round(daySpending)}
@@ -692,7 +692,7 @@ function AnalyticsPage({ transactions = [], onDateClick, autoOpenTracker = false
             <select
               value={displayYear}
               onChange={(e) => setDisplayYear(parseInt(e.target.value, 10))}
-              className="appearance-none bg-transparent pr-6 text-sm font-semibold text-gray-600 focus:outline-none cursor-pointer"
+              className="appearance-none bg-transparent pr-6 text-lg font-semibold text-gray-600 focus:outline-none cursor-pointer"
             >
               {trackerYearOptions.map((year) => (
                 <option key={year} value={year}>
@@ -708,7 +708,7 @@ function AnalyticsPage({ transactions = [], onDateClick, autoOpenTracker = false
             <select
               value={currentMonth}
               onChange={(e) => setDisplayMonth(parseInt(e.target.value, 10))}
-              className="appearance-none bg-transparent pr-7 text-lg font-semibold text-black focus:outline-none cursor-pointer"
+              className="appearance-none bg-transparent pr-7 text-2xl font-semibold text-black focus:outline-none cursor-pointer"
             >
               {MONTH_LABELS.map((label, monthIndex) => (
                 <option key={label} value={monthIndex}>
@@ -721,11 +721,11 @@ function AnalyticsPage({ transactions = [], onDateClick, autoOpenTracker = false
             </span>
           </div>
         </div>
-        <p className="text-sm text-gray-600">Daily Goal: ${formatCurrency(Number.isFinite(dailyGoal) ? dailyGoal : 0)}</p>
+        <p className="text-base text-gray-600">Daily Goal: ${formatCurrency(Number.isFinite(dailyGoal) ? dailyGoal : 0)}</p>
       </div>
       <div className="grid grid-cols-7 gap-3 mb-4">
         {weekDays.map((day, index) => (
-          <div key={index} className="text-center text-xs text-gray-500 font-medium">
+          <div key={index} className="text-center text-sm text-gray-500 font-medium">
             {day}
           </div>
         ))}
@@ -735,7 +735,7 @@ function AnalyticsPage({ transactions = [], onDateClick, autoOpenTracker = false
         {renderCalendar()}
       </div>
       
-      <div className="flex justify-center gap-6 text-sm">
+      <div className="flex justify-center gap-6 text-base">
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 rounded-full bg-[#F35DC8]"></div>
           <span className="text-gray-700 font-medium">Over Budget</span>
@@ -1105,7 +1105,14 @@ function AnalyticsPage({ transactions = [], onDateClick, autoOpenTracker = false
       </div>
 
       {/* Progress Section */}
-      <div className="rounded-[16px] px-6 pt-8 pb-10 relative overflow-hidden bg-black">
+      <div 
+        className="rounded-[16px] px-6 pt-8 pb-10 relative overflow-hidden bg-black cursor-pointer active:opacity-95 transition-opacity"
+        onClick={() => {
+          setStartDateInput(startDate);
+          setTargetInput(target.toString());
+          setShowModal(true);
+        }}
+      >
         <div
           className="relative flex justify-center items-end mb-3 mx-auto"
           style={{ height: '150px', width: '100%', maxWidth: '300px', position: 'relative' }}
@@ -1203,11 +1210,11 @@ function AnalyticsPage({ transactions = [], onDateClick, autoOpenTracker = false
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-80 mx-4">
-            <h2 className="text-xl font-bold text-black mb-2" style={{ fontFamily: 'sans-serif' }}>Set Target Goal</h2>
-            <p className="text-sm text-gray-600 mb-6">Enter your savings goal and period</p>
+            <h2 className="text-xl font-bold text-black mb-2" style={{ fontFamily: 'Aldrich, sans-serif' }}>Set Target Goal</h2>
+            <p className="text-sm text-gray-600 mb-6" style={{ fontFamily: 'Aldrich, sans-serif' }}>Enter your savings goal and period</p>
             
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2" style={{ fontFamily: 'Aldrich, sans-serif' }}>
                 Period
               </label>
               <select
@@ -1215,6 +1222,7 @@ function AnalyticsPage({ transactions = [], onDateClick, autoOpenTracker = false
                 onChange={(e) => setPeriod(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black bg-white text-black font-normal"
                 style={{
+                  fontFamily: 'Aldrich, sans-serif',
                   backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
                   backgroundRepeat: 'no-repeat',
                   backgroundPosition: 'right 12px center',
@@ -1231,29 +1239,48 @@ function AnalyticsPage({ transactions = [], onDateClick, autoOpenTracker = false
             </div>
 
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2" style={{ fontFamily: 'Aldrich, sans-serif' }}>
                 Start Date
               </label>
               <div className="relative">
+                <style>{`
+                  input[type="date"]::-webkit-calendar-picker-indicator {
+                    background: transparent;
+                    bottom: 0;
+                    color: transparent;
+                    cursor: pointer;
+                    height: auto;
+                    left: 0;
+                    position: absolute;
+                    right: 0;
+                    top: 0;
+                    width: auto;
+                  }
+                `}</style>
                 <input
                   type="date"
                   value={startDateInput || startDate}
                   onChange={(e) => setStartDateInput(e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black pr-10 text-black"
                   style={{ 
+                    fontFamily: 'Aldrich, sans-serif',
                     colorScheme: 'light'
                   }}
                 />
                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                    <line x1="8" y1="14" x2="16" y2="14"></line>
                   </svg>
                 </div>
               </div>
             </div>
             
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2" style={{ fontFamily: 'Aldrich, sans-serif' }}>
                 Target Amount ($)
               </label>
               <input
@@ -1262,9 +1289,10 @@ function AnalyticsPage({ transactions = [], onDateClick, autoOpenTracker = false
                 onChange={(e) => setTargetInput(e.target.value)}
                 placeholder="200"
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black text-black"
+                style={{ fontFamily: 'Aldrich, sans-serif' }}
               />
               {targetInput && !isNaN(parseFloat(targetInput)) && parseFloat(targetInput) > 0 && (
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-gray-500 mt-1" style={{ fontFamily: 'Aldrich, sans-serif' }}>
                   Daily Goal: ${Math.round(parseFloat(targetInput) / daysInPeriod)}
                 </p>
               )}
@@ -1278,14 +1306,14 @@ function AnalyticsPage({ transactions = [], onDateClick, autoOpenTracker = false
                   setStartDateInput('');
                 }}
                 className="flex-1 px-4 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors"
-                style={{ fontFamily: 'sans-serif' }}
+                style={{ fontFamily: 'Aldrich, sans-serif' }}
               >
                 Cancel
               </button>
               <button
                 onClick={handleSetTarget}
                 className="flex-1 px-4 py-3 bg-black text-white rounded-lg font-medium hover:bg-gray-800 transition-colors"
-                style={{ fontFamily: 'sans-serif' }}
+                style={{ fontFamily: 'Aldrich, sans-serif' }}
               >
                 Set
               </button>
