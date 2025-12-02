@@ -76,11 +76,37 @@ function ChatPage({ transactions }) {
   const [loadingMessages, setLoadingMessages] = useState(true);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(true);
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
   const savedMessageIdsRef = useRef(new Set()); // Track saved message IDs to prevent duplicate saves
   const profileRefs = useRef({});
   const infoCardRef = useRef(null);
+  const clickTimeoutRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (clickTimeoutRef.current) {
+        clearTimeout(clickTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Handle profile click (distinguish single vs double click)
+  const handleProfileClick = (aiId) => {
+    if (clickTimeoutRef.current) {
+      // Double click detected
+      clearTimeout(clickTimeoutRef.current);
+      clickTimeoutRef.current = null;
+      setActiveProfileInfo(prev => prev === aiId ? null : aiId);
+    } else {
+      // First click - set timeout
+      clickTimeoutRef.current = setTimeout(() => {
+        handleAIToggle(aiId);
+        clickTimeoutRef.current = null;
+      }, 250); // 250ms threshold for double click
+    }
+  };
 
   const scrollToBottom = () => {
     if (messagesContainerRef.current) {
@@ -1692,8 +1718,10 @@ User message: ${userMessage}`;
     }
   };
 
-  const handleSendMessage = async () => {
-    if (!inputMessage.trim() || isLoading || loadingMessages) return;
+  const handleSendMessage = async (textOverride) => {
+    const messageText = typeof textOverride === 'string' ? textOverride : inputMessage;
+    
+    if (!messageText.trim() || isLoading || loadingMessages) return;
 
     // Get enabled AIs
     const enabledAIs = Object.keys(aiEnabled).filter(aiId => aiEnabled[aiId]);
@@ -1709,12 +1737,11 @@ User message: ${userMessage}`;
     const userMessage = {
       id: conversationTurnId,
       type: 'user',
-      text: inputMessage,
+      text: messageText,
       time: currentTime
     };
 
     setMessages(prev => [...prev, userMessage]);
-    const messageText = inputMessage;
     setInputMessage('');
     setIsLoading(true);
 
@@ -1760,28 +1787,31 @@ User message: ${userMessage}`;
           display: none;
         }
         .mesh-gradient-bg {
-          background: linear-gradient(135deg, #FFE5F5 0%, #F5E6FF 50%, #E6F0FF 100%);
+          background-image: url('/mesh-gradient.png');
+          background-size: cover;
+          background-position: center;
+          background-repeat: no-repeat;
           position: absolute;
           inset: 0;
           opacity: 0.6;
           z-index: 0;
         }
       `}</style>
-      <div className="h-full flex flex-col pb-20 overflow-hidden relative">
+      <div className="h-full flex flex-col pb-0 overflow-hidden relative">
       {/* Mesh Gradient Background */}
       <div className="mesh-gradient-bg"></div>
       
       {/* Content */}
       <div className="h-full flex flex-col relative z-10">
       {/* Chat Header */}
-      <div className="p-6 pb-4 bg-transparent">
+      <div 
+        className="p-6 pb-4 bg-[rgba(255,255,255,0.65)] border border-[rgba(255,255,255,0.4)] border-t-0 shadow-[0px_4px_30px_rgba(0,0,0,0.03)] rounded-bl-[30px] rounded-br-[30px]"
+        style={{backdropFilter: 'blur(20px)'}}
+      >
         <div className="flex items-start gap-3 mb-4">
           {/* Star Icon */}
           <div className="flex-shrink-0">
-            <svg width="45" height="45" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="#F35DC8" opacity="0.7"/>
-              <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" stroke="#F35DC8" strokeWidth="1" opacity="0.5"/>
-            </svg>
+            <img src="/star-emoji.png" alt="Star Icon" className="w-[45px] h-[45px]" />
           </div>
           
           {/* Text Section */}
@@ -1804,7 +1834,7 @@ User message: ${userMessage}`;
                   ref={(el) => {
                     profileRefs.current[ai.id] = el;
                   }}
-                  onClick={() => setActiveProfileInfo(prev => prev === ai.id ? null : ai.id)}
+                  onClick={() => handleProfileClick(ai.id)}
                   className={`w-10 h-10 rounded-full border-2 border-gray-300 flex items-center justify-center transition-all relative overflow-hidden ${
                     isEnabled ? 'opacity-100' : 'opacity-30 hover:opacity-50'
                   }`}
@@ -1834,7 +1864,7 @@ User message: ${userMessage}`;
         <div
           data-ai-info-card
           ref={infoCardRef}
-          className="fixed z-40 flex items-stretch gap-4 rounded-3xl border border-gray-200 bg-white p-5 shadow-2xl"
+          className="fixed z-40 rounded-3xl border border-gray-200 bg-white p-5 shadow-2xl"
           style={{
             left: `${infoCardStyles.left}px`,
             top: `${infoCardStyles.top}px`,
@@ -1861,16 +1891,6 @@ User message: ${userMessage}`;
               </p>
             </div>
           </div>
-          <button
-            onClick={() => handleAIToggle(activeProfileInfo)}
-            className={`px-4 py-2 rounded-xl text-sm font-medium flex items-center justify-center self-start transition ${
-              aiEnabled[activeProfileInfo]
-                ? 'bg-black text-white hover:bg-gray-800'
-                : 'bg-gray-200 text-black hover:bg-gray-300'
-            }`}
-          >
-            {aiEnabled[activeProfileInfo] ? 'Disable' : 'Enable'}
-          </button>
         </div>
       )}
       </div>
@@ -1948,38 +1968,80 @@ User message: ${userMessage}`;
         )}
       </div>
       
-      {/* Chat Input */}
-      <div className="p-6 pt-4">
+      {/* Chat Input Area */}
+      <div 
+        className="relative z-20 bg-[rgba(255,255,255,0.65)] border-t border-[rgba(255,255,255,0.4)] rounded-t-[30px] shadow-[0px_-4px_30px_rgba(0,0,0,0.03)]"
+        style={{
+          backdropFilter: 'blur(20px)',
+          paddingBottom: 'calc(80px + env(safe-area-inset-bottom))' // Space for NavigationBar
+        }}
+      >
         {/* Expand More Icon */}
-        <div className="flex justify-center mb-3">
-          <svg width="28" height="21" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M7 10L12 15L17 10" stroke="#000000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" opacity="0.3"/>
+        <div 
+          className="flex justify-center pt-3 pb-2 cursor-pointer"
+          onClick={() => setShowSuggestions(!showSuggestions)}
+        >
+          <svg 
+            width="24" 
+            height="24" 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            xmlns="http://www.w3.org/2000/svg"
+            className={`transition-transform duration-300 ${showSuggestions ? 'rotate-0' : 'rotate-180'}`}
+          >
+            <path d="M19 9L12 16L5 9" stroke="#000000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" opacity="0.3"/>
           </svg>
         </div>
+
+        {/* Suggestion Chips */}
+        {showSuggestions && (
+          <div className="flex flex-col items-end gap-2 px-6 pb-4">
+            {[
+              "how’s my spending this week?",
+              "see where my money goes 👀"
+            ].map((chip, index) => (
+              <button
+                key={index}
+                onClick={() => handleSendMessage(chip)}
+                className="bg-[rgba(255,0,182,0.3)] px-5 py-2.5 rounded-[25px] shadow-[0px_0px_2px_0px_rgba(57,57,57,0.25)] transition active:scale-95 hover:bg-[rgba(255,0,182,0.4)]"
+              >
+                <p className="text-black text-base leading-normal whitespace-nowrap" style={{fontFamily: 'Aldrich, sans-serif'}}>
+                  {chip}
+                </p>
+              </button>
+            ))}
+          </div>
+        )}
         
-        <div className="flex gap-3 items-center">
-          <input 
-            type="text" 
-            placeholder="" 
-            value={inputMessage}
-            onChange={(e) => setInputMessage(e.target.value)}
-            onKeyPress={handleKeyPress}
-            disabled={isLoading}
-            className="flex-1 bg-white rounded-full px-6 py-3 text-black placeholder-gray-400 outline-none text-base disabled:opacity-50"
-            style={{border: '1px solid #e0e0e0'}}
-          />
-          <button 
-            onClick={handleSendMessage}
-            disabled={isLoading || !inputMessage.trim()}
-            className="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed transition"
-            style={{
-              background: isLoading || !inputMessage.trim() ? '#F7A9E0' : '#F35DC8'
-            }}
-          >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M5 12L19 12M19 12L12 5M19 12L12 19" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" transform="rotate(45 12 12)"/>
-            </svg>
-          </button>
+        <div className="px-6 pb-6">
+          <div className="flex gap-3 items-center">
+            <input 
+              type="text" 
+              placeholder="" 
+              value={inputMessage}
+              onChange={(e) => setInputMessage(e.target.value)}
+              onKeyPress={handleKeyPress}
+              disabled={isLoading}
+              className="flex-1 bg-white rounded-[30px] px-6 py-4 text-black placeholder-gray-400 outline-none text-base disabled:opacity-50 border border-[#E0E0E0]"
+              style={{
+                height: '54px',
+                boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.05)'
+              }}
+            />
+            <button 
+              onClick={handleSendMessage}
+              disabled={isLoading || !inputMessage.trim()}
+              className="w-[54px] h-[54px] rounded-full flex items-center justify-center flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed transition shadow-md"
+              style={{
+                background: isLoading || !inputMessage.trim() ? '#F7A9E0' : '#F35DC8'
+              }}
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M22 2L11 13" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
       </div>
