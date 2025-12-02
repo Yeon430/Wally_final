@@ -77,6 +77,7 @@ function ChatPage({ transactions }) {
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(true);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
   const savedMessageIdsRef = useRef(new Set()); // Track saved message IDs to prevent duplicate saves
@@ -1793,7 +1794,7 @@ User message: ${userMessage}`;
           background-repeat: no-repeat;
           position: absolute;
           inset: 0;
-          opacity: 0.6;
+          opacity: 1;
           z-index: 0;
         }
       `}</style>
@@ -1805,60 +1806,61 @@ User message: ${userMessage}`;
       <div className="h-full flex flex-col relative z-10">
       {/* Chat Header */}
       <div 
-        className="p-6 pb-4 bg-[rgba(255,255,255,0.65)] border border-[rgba(255,255,255,0.4)] border-t-0 shadow-[0px_4px_30px_rgba(0,0,0,0.03)] rounded-bl-[30px] rounded-br-[30px]"
-        style={{backdropFilter: 'blur(20px)'}}
+        className="relative px-6 py-4 bg-[rgba(255,255,255,0.5)] border-b border-[rgba(255,255,255,0.4)] shadow-sm backdrop-blur-md z-30 rounded-bl-[30px] rounded-br-[30px]"
       >
-        <div className="flex items-start gap-3 mb-4">
-          {/* Star Icon */}
-          <div className="flex-shrink-0">
-            <img src="/star-emoji.png" alt="Star Icon" className="w-[45px] h-[45px]" />
-          </div>
+        <div className="flex items-center justify-between relative h-[54px]">
+          <h2 className="text-2xl font-bold text-black" style={{fontFamily: 'Aldrich, sans-serif'}}>Your Wallys</h2>
           
-          {/* Text Section */}
-          <div className="flex-1">
-            <h2 className="text-2xl font-bold text-black mb-1" style={{fontFamily: 'Aldrich, sans-serif'}}>Your Wallys</h2>
-            <p className="text-base text-black" style={{fontFamily: 'Aldrich, sans-serif'}}>
-              {Object.values(AI_CONFIG).filter(ai => aiEnabled[ai.id]).map(ai => ai.name).join(' & ')}
-            </p>
-          </div>
+          <button 
+            onClick={() => setShowProfileMenu(!showProfileMenu)}
+            className="p-2 rounded-full hover:bg-black/5 transition-colors"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="5" r="2" fill="black"/>
+              <circle cx="12" cy="12" r="2" fill="black"/>
+              <circle cx="12" cy="19" r="2" fill="black"/>
+            </svg>
+          </button>
         </div>
         
-        {/* Small Profile Avatars */}
-        <div className="flex items-center gap-3">
-          {Object.values(AI_CONFIG).map((ai) => {
-            const isInfoActive = activeProfileInfo === ai.id;
-            const isEnabled = aiEnabled[ai.id];
-            return (
-              <div key={ai.id} className="relative" data-ai-profile>
-                <button
-                  ref={(el) => {
-                    profileRefs.current[ai.id] = el;
-                  }}
-                  onClick={() => handleProfileClick(ai.id)}
-                  className={`w-10 h-10 rounded-full border-2 border-gray-300 flex items-center justify-center transition-all relative overflow-hidden ${
-                    isEnabled ? 'opacity-100' : 'opacity-30 hover:opacity-50'
-                  }`}
-                  style={{background: '#D9D9D9'}}
-                  title={ai.name}
-                >
-                  <img
-                    src={ai.avatar}
-                    alt={ai.name}
-                    className="w-full h-full object-cover rounded-full"
-                  />
-                  {!isEnabled && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                      <div className="w-6 h-0.5 bg-white rotate-45"></div>
-                    </div>
-                  )}
-                  {isInfoActive && (
-                    <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-black"></span>
-                  )}
-                </button>
-              </div>
-            );
-          })}
-        </div>
+        {/* Dropdown Menu for Profiles */}
+        {showProfileMenu && (
+          <div className="absolute top-[80px] right-6 p-4 bg-white/90 backdrop-blur-md rounded-2xl shadow-xl border border-white/20 flex gap-3 z-40">
+            {Object.values(AI_CONFIG).map((ai) => {
+              const isInfoActive = activeProfileInfo === ai.id;
+              const isEnabled = aiEnabled[ai.id];
+              return (
+                <div key={ai.id} className="relative" data-ai-profile>
+                  <button
+                    ref={(el) => {
+                      profileRefs.current[ai.id] = el;
+                    }}
+                    onClick={() => handleProfileClick(ai.id)}
+                    className={`w-10 h-10 rounded-full border-2 border-gray-300 flex items-center justify-center transition-all relative overflow-hidden ${
+                      isEnabled ? 'opacity-100' : 'opacity-30 hover:opacity-50'
+                    }`}
+                    style={{background: '#D9D9D9'}}
+                    title={ai.name}
+                  >
+                    <img
+                      src={ai.avatar}
+                      alt={ai.name}
+                      className="w-full h-full object-cover rounded-full"
+                    />
+                    {!isEnabled && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                        <div className="w-6 h-0.5 bg-white rotate-45"></div>
+                      </div>
+                    )}
+                    {isInfoActive && (
+                      <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-black"></span>
+                    )}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
         
       {activeProfileInfo && infoCardStyles && (
         <div
@@ -1929,7 +1931,7 @@ User message: ${userMessage}`;
               </div>
               <div className="flex-1">
                 <div className="rounded-xl p-3 inline-block max-w-xs" style={{background: 'rgba(255, 255, 255, 0.5)', boxShadow: '0px 0px 2px 0px rgba(57, 57, 57, 0.25)'}}>
-                  <p className="text-black text-base leading-relaxed" style={{fontFamily: 'Sansation, Noto Sans KR, sans-serif'}}>{message.text}</p>
+                  <p className="text-black text-base leading-relaxed" style={{fontFamily: 'Aldrich, Noto Sans KR, sans-serif'}}>{message.text}</p>
                 </div>
                 <p className="text-xs text-black opacity-40 mt-1 ml-2">{message.time}</p>
               </div>
@@ -1937,8 +1939,8 @@ User message: ${userMessage}`;
           ) : (
             <div key={uniqueKey} className="flex gap-3 justify-end">
               <div className="flex-1 text-right">
-                <div className="rounded-3xl p-3 inline-block max-w-xs" style={{background: 'rgba(255, 0, 182, 0.3)', boxShadow: '0px 0px 2px 0px rgba(57, 57, 57, 0.25)'}}>
-                  <p className="text-black text-base leading-normal" style={{fontFamily: 'Aldrich, sans-serif'}}>{message.text}</p>
+                <div className="p-3 inline-block max-w-xs" style={{background: 'rgba(255, 0, 182, 0.3)', boxShadow: '0px 0px 2px 0px rgba(57, 57, 57, 0.25)', borderRadius: '20px 0px 20px 20px'}}>
+                  <p className="text-black text-base leading-normal text-right" style={{fontFamily: 'Aldrich, sans-serif'}}>{message.text}</p>
                 </div>
                 <p className="text-xs text-black opacity-40 mt-1 mr-2">{message.time}</p>
               </div>
@@ -1970,10 +1972,11 @@ User message: ${userMessage}`;
       
       {/* Chat Input Area */}
       <div 
-        className="relative z-20 bg-[rgba(255,255,255,0.65)] border-t border-[rgba(255,255,255,0.4)] rounded-t-[30px] shadow-[0px_-4px_30px_rgba(0,0,0,0.03)]"
+        className="relative z-20 rounded-t-[30px] border-t border-white/60 shadow-[0px_-4px_20px_rgba(0,0,0,0.05)]"
         style={{
-          backdropFilter: 'blur(20px)',
-          paddingBottom: 'calc(80px + env(safe-area-inset-bottom))' // Space for NavigationBar
+          background: 'linear-gradient(to top, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.8) 60%, rgba(255,255,255,0) 100%)',
+          backdropFilter: 'blur(10px)',
+          paddingBottom: 'calc(100px + env(safe-area-inset-bottom))' // Space for NavigationBar
         }}
       >
         {/* Expand More Icon */}
@@ -1995,7 +1998,7 @@ User message: ${userMessage}`;
 
         {/* Suggestion Chips */}
         {showSuggestions && (
-          <div className="flex flex-col items-end gap-2 px-6 pb-4">
+          <div className="flex flex-col items-end gap-2 px-6 pb-3">
             {[
               "how’s my spending this week?",
               "see where my money goes 👀"
@@ -2003,9 +2006,9 @@ User message: ${userMessage}`;
               <button
                 key={index}
                 onClick={() => handleSendMessage(chip)}
-                className="bg-[rgba(255,0,182,0.3)] px-5 py-2.5 rounded-[25px] shadow-[0px_0px_2px_0px_rgba(57,57,57,0.25)] transition active:scale-95 hover:bg-[rgba(255,0,182,0.4)]"
+                className="bg-[rgba(255,0,182,0.3)] px-4 py-2 rounded-[12px] shadow-[0px_0px_2px_0px_rgba(57,57,57,0.25)] transition active:scale-95 hover:bg-[rgba(255,0,182,0.4)]"
               >
-                <p className="text-black text-base leading-normal whitespace-nowrap" style={{fontFamily: 'Aldrich, sans-serif'}}>
+                <p className="text-black text-sm leading-normal whitespace-nowrap" style={{fontFamily: 'Aldrich, sans-serif'}}>
                   {chip}
                 </p>
               </button>
@@ -2013,7 +2016,7 @@ User message: ${userMessage}`;
           </div>
         )}
         
-        <div className="px-6 pb-6">
+        <div className="px-6 pb-4">
           <div className="flex gap-3 items-center">
             <input 
               type="text" 
@@ -2022,16 +2025,16 @@ User message: ${userMessage}`;
               onChange={(e) => setInputMessage(e.target.value)}
               onKeyPress={handleKeyPress}
               disabled={isLoading}
-              className="flex-1 bg-white rounded-[30px] px-6 py-4 text-black placeholder-gray-400 outline-none text-base disabled:opacity-50 border border-[#E0E0E0]"
+              className="flex-1 bg-white rounded-[30px] px-6 py-3 text-black placeholder-gray-400 outline-none text-base disabled:opacity-50 border border-[#E0E0E0]"
               style={{
-                height: '54px',
+                height: '48px',
                 boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.05)'
               }}
             />
             <button 
               onClick={handleSendMessage}
               disabled={isLoading || !inputMessage.trim()}
-              className="w-[54px] h-[54px] rounded-full flex items-center justify-center flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed transition shadow-md"
+              className="w-[48px] h-[48px] rounded-full flex items-center justify-center flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed transition shadow-md"
               style={{
                 background: isLoading || !inputMessage.trim() ? '#F7A9E0' : '#F35DC8'
               }}
