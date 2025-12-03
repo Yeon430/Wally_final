@@ -93,20 +93,14 @@ function ChatPage({ transactions }) {
     };
   }, []);
 
-  // Handle profile click (distinguish single vs double click)
+  // Handle profile click (toggle AI)
   const handleProfileClick = (aiId) => {
-    if (clickTimeoutRef.current) {
-      // Double click detected
-      clearTimeout(clickTimeoutRef.current);
-      clickTimeoutRef.current = null;
-      setActiveProfileInfo(prev => prev === aiId ? null : aiId);
-    } else {
-      // First click - set timeout
-      clickTimeoutRef.current = setTimeout(() => {
-        handleAIToggle(aiId);
-        clickTimeoutRef.current = null;
-      }, 250); // 250ms threshold for double click
-    }
+    handleAIToggle(aiId);
+  };
+
+  // Handle question mark click (show info)
+  const handleInfoClick = (aiId) => {
+    setActiveProfileInfo(prev => prev === aiId ? null : aiId);
   };
 
   const scrollToBottom = () => {
@@ -144,7 +138,7 @@ function ChatPage({ transactions }) {
       left = Math.max(minLeft, maxLeft);
     }
 
-    let top = rect.top + rect.height + 12;
+    let top = rect.top + rect.height + 20;
     if (cardHeight) {
       top = Math.min(top, frameBottom - margin - cardHeight);
     } else {
@@ -1826,47 +1820,61 @@ User message: ${userMessage}`;
         {/* Dropdown Menu for Profiles */}
         {showProfileMenu && (
           <div className="absolute top-[80px] right-6 p-4 bg-white/90 backdrop-blur-md rounded-2xl shadow-xl border border-white/20 flex gap-3 z-40">
-            {Object.values(AI_CONFIG).map((ai) => {
-              const isInfoActive = activeProfileInfo === ai.id;
-              const isEnabled = aiEnabled[ai.id];
-              return (
-                <div key={ai.id} className="relative" data-ai-profile>
-                  <button
-                    ref={(el) => {
-                      profileRefs.current[ai.id] = el;
-                    }}
+          {Object.values(AI_CONFIG).map((ai) => {
+            const isInfoActive = activeProfileInfo === ai.id;
+            const isEnabled = aiEnabled[ai.id];
+            return (
+              <div 
+                key={ai.id} 
+                className="relative flex flex-col items-center gap-1" 
+                data-ai-profile
+                ref={(el) => {
+                  profileRefs.current[ai.id] = el;
+                }}
+              >
+                <button
                     onClick={() => handleProfileClick(ai.id)}
                     className={`w-10 h-10 rounded-full border-2 border-gray-300 flex items-center justify-center transition-all relative overflow-hidden ${
-                      isEnabled ? 'opacity-100' : 'opacity-30 hover:opacity-50'
-                    }`}
+                    isEnabled ? 'opacity-100' : 'opacity-30 hover:opacity-50'
+                  }`}
                     style={{background: '#D9D9D9'}}
-                    title={ai.name}
-                  >
-                    <img
-                      src={ai.avatar}
-                      alt={ai.name}
-                      className="w-full h-full object-cover rounded-full"
-                    />
-                    {!isEnabled && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                        <div className="w-6 h-0.5 bg-white rotate-45"></div>
-                      </div>
-                    )}
-                    {isInfoActive && (
-                      <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-black"></span>
-                    )}
-                  </button>
-                </div>
-              );
-            })}
-          </div>
+                  title={ai.name}
+                >
+                  <img
+                    src={ai.avatar}
+                    alt={ai.name}
+                    className="w-full h-full object-cover rounded-full"
+                  />
+                  {!isEnabled && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                      <div className="w-6 h-0.5 bg-white rotate-45"></div>
+                    </div>
+                  )}
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleInfoClick(ai.id);
+                  }}
+                  className={`w-4 h-4 rounded-full flex items-center justify-center border border-gray-200 transition-all ${
+                    isInfoActive ? 'bg-gray-400 text-white border-gray-400' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+                  }`}
+                  title="Info"
+                >
+                  <span className="text-[10px] font-bold">?</span>
+                </button>
+              </div>
+            );
+          })}
+        </div>
         )}
-        
+      </div>
+      
       {activeProfileInfo && infoCardStyles && (
         <div
           data-ai-info-card
           ref={infoCardRef}
-          className="fixed z-40 rounded-3xl border border-gray-200 bg-white p-5 shadow-2xl"
+          className="fixed z-40 rounded-3xl border border-gray-200 bg-white p-5"
           style={{
             left: `${infoCardStyles.left}px`,
             top: `${infoCardStyles.top}px`,
@@ -1895,7 +1903,6 @@ User message: ${userMessage}`;
           </div>
         </div>
       )}
-      </div>
       
       {/* Chat Messages */}
       <div 
@@ -2017,36 +2024,36 @@ User message: ${userMessage}`;
         )}
         
         <div className="px-6 pb-4">
-          <div className="flex gap-3 items-center">
-            <input 
-              type="text" 
+        <div className="flex gap-3 items-center">
+          <input 
+            type="text" 
               placeholder="" 
-              value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
-              onKeyPress={handleKeyPress}
-              disabled={isLoading}
+            value={inputMessage}
+            onChange={(e) => setInputMessage(e.target.value)}
+            onKeyPress={handleKeyPress}
+            disabled={isLoading}
               className="flex-1 bg-white rounded-[30px] px-6 py-3 text-black placeholder-gray-400 outline-none text-base disabled:opacity-50 border border-[#E0E0E0]"
               style={{
                 height: '48px',
                 boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.05)'
               }}
-            />
-            <button 
-              onClick={handleSendMessage}
-              disabled={isLoading || !inputMessage.trim()}
+          />
+          <button 
+            onClick={handleSendMessage}
+            disabled={isLoading || !inputMessage.trim()}
               className="w-[48px] h-[48px] rounded-full flex items-center justify-center flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed transition shadow-md"
-              style={{
-                background: isLoading || !inputMessage.trim() ? '#F7A9E0' : '#F35DC8'
-              }}
-            >
+            style={{
+              background: isLoading || !inputMessage.trim() ? '#F7A9E0' : '#F35DC8'
+            }}
+          >
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M22 2L11 13" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </button>
+            </svg>
+          </button>
           </div>
         </div>
-      </div>
+        </div>
       </div>
     </div>
     </>
