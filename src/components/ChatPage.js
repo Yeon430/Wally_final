@@ -1937,6 +1937,9 @@ User message: ${userMessage}`;
                 </div>
               </div>
               <div className="flex-1">
+                <p className="text-xs font-bold text-black ml-1 mb-1" style={{fontFamily: 'Aldrich, sans-serif'}}>
+                  {aiConfig?.name}
+                </p>
                 <div className="rounded-xl p-3 inline-block max-w-xs" style={{background: 'rgba(255, 255, 255, 0.5)', boxShadow: '0px 0px 2px 0px rgba(57, 57, 57, 0.25)'}}>
                   <p className="text-black text-base leading-relaxed" style={{fontFamily: 'Aldrich, Noto Sans KR, sans-serif'}}>{message.text}</p>
                 </div>
@@ -1966,6 +1969,9 @@ User message: ${userMessage}`;
               </div>
             </div>
             <div className="flex-1">
+              <p className="text-xs font-bold text-black ml-1 mb-1" style={{fontFamily: 'Aldrich, sans-serif'}}>
+                {AI_CONFIG[aiId].name}
+              </p>
               <div className="rounded-xl p-3 inline-block" style={{background: 'rgba(255, 255, 255, 0.5)', boxShadow: '0px 0px 2px 0px rgba(57, 57, 57, 0.25)'}}>
                 <p className="text-black text-base leading-relaxed">Thinking...</p>
               </div>
