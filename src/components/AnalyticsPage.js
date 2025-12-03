@@ -1128,7 +1128,6 @@ function AnalyticsPage({ transactions = [], onDateClick, autoOpenTracker = false
       <div className="-mx-6 -mt-6 px-6 pt-10">
         <div className="flex justify-between items-end">
           <div className="flex flex-col items-start gap-2">
-            <LoadingIcon size={28} strokeWidth={2} />
             <h1 className="text-3xl font-bold text-black">Budget Pulse</h1>
           </div>
           <button 
