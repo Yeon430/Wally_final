@@ -1109,7 +1109,7 @@ function AnalyticsPage({ transactions = [], onDateClick, autoOpenTracker = false
 
       {/* Progress Section */}
       <div 
-        className="rounded-[16px] px-6 pt-4 pb-10 relative overflow-hidden bg-white cursor-pointer active:opacity-95 transition-opacity -mt-2"
+        className="rounded-[16px] px-6 pt-4 pb-5 relative overflow-hidden bg-white cursor-pointer active:opacity-95 transition-opacity -mt-2"
         onClick={() => {
           setStartDateInput(startDate);
           setTargetInput(target.toString());
@@ -1208,7 +1208,7 @@ function AnalyticsPage({ transactions = [], onDateClick, autoOpenTracker = false
       </div>
 
       {/* Tracker Calendar Section */}
-      <div className="bg-white rounded-[16px] p-6 shadow-sm -mx-6 -mt-2">
+      <div className="bg-white rounded-[16px] p-6 shadow-sm -mx-6 -mt-4">
         {renderTrackerContent()}
       </div>
 
