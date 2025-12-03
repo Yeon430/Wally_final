@@ -52,6 +52,7 @@ function AnalyticsPage({ transactions = [], onDateClick, autoOpenTracker = false
   todayDate.setHours(0, 0, 0, 0);
   const [displayMonth, setDisplayMonth] = useState(todayDate.getMonth());
   const [displayYear, setDisplayYear] = useState(todayDate.getFullYear());
+  const [showTrackerHint, setShowTrackerHint] = useState(true);
   
   // Load settings from Supabase on mount
   useEffect(() => {
@@ -701,6 +702,30 @@ function AnalyticsPage({ transactions = [], onDateClick, autoOpenTracker = false
 
   const renderTrackerContent = () => (
     <>
+      {showTrackerHint && (
+        <div className="mb-8 relative">
+          <div className="p-4 pr-8 bg-gray-100 rounded-[12px] flex items-start gap-3 relative z-10">
+            <span className="text-lg">💡</span>
+            <p className="text-sm text-gray-600 leading-snug font-medium">
+              Track your spending habits! Green circles mean you stayed within your daily goal, while pink ones indicate overspending.
+            </p>
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowTrackerHint(false);
+              }}
+              className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 p-1"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+          <div className="absolute left-8 -bottom-2 w-4 h-4 bg-gray-100 transform rotate-45"></div>
+        </div>
+      )}
+
       <div className="mb-6 text-left">
         <div className="flex items-center gap-4 mb-2">
           <div className="relative inline-flex items-center">
@@ -941,21 +966,21 @@ function AnalyticsPage({ transactions = [], onDateClick, autoOpenTracker = false
           </p>
         </div>
         
-        <div className="rounded-[16px] px-6 pt-6 pb-6 relative overflow-hidden bg-black">
-          <div className="flex items-center gap-4 text-sm font-semibold text-white/70 mb-4">
+        <div className="rounded-[16px] px-6 pt-6 pb-6 relative overflow-hidden bg-gray-100">
+          <div className="flex items-center gap-4 text-sm font-semibold text-gray-600 mb-4">
             <div className="relative">
               <select
                 value={selectedYear}
                 onChange={(e) => setSelectedYear(parseInt(e.target.value, 10))}
-                className="appearance-none bg-transparent pr-6 focus:outline-none cursor-pointer text-white"
+                className="appearance-none bg-transparent pr-6 focus:outline-none cursor-pointer text-black"
               >
                 {yearsAvailable.map((year) => (
-                  <option key={year} value={year} className="bg-black text-white">
+                  <option key={year} value={year} className="bg-white text-black">
                     {year}
                   </option>
                 ))}
               </select>
-              <span className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-white/60 text-[10px]">
+              <span className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-gray-500 text-[10px]">
                 ▼
               </span>
             </div>
@@ -963,15 +988,15 @@ function AnalyticsPage({ transactions = [], onDateClick, autoOpenTracker = false
               <select
                 value={safeMonthIndex}
                 onChange={(e) => setSelectedMonthIndex(parseInt(e.target.value, 10))}
-                className="appearance-none bg-transparent pr-6 focus:outline-none cursor-pointer text-white"
+                className="appearance-none bg-transparent pr-6 focus:outline-none cursor-pointer text-black"
               >
                 {monthOptions.map((idx) => (
-                  <option key={idx} value={idx} className="bg-black text-white">
+                  <option key={idx} value={idx} className="bg-white text-black">
                     {new Date(selectedYear, idx, 1).toLocaleString('en-US', { month: 'long' })}
                   </option>
                 ))}
               </select>
-              <span className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-white/60 text-[10px]">
+              <span className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-gray-500 text-[10px]">
                 ▼
               </span>
             </div>
@@ -993,12 +1018,14 @@ function AnalyticsPage({ transactions = [], onDateClick, autoOpenTracker = false
                       onClick={() => setSelectedCategory(slice.category)}
                     />
                   ))}
+                  {/* Donut hole */}
+                  <circle cx={centerX} cy={centerY} r={radius * 0.6} fill="#F3F4F6" />
                 </svg>
               </div>
             </>
           ) : (
-            <div className="bg-black/50 rounded-lg p-6 text-center">
-              <p className="text-sm text-white/70">
+            <div className="bg-gray-200 rounded-lg p-6 text-center">
+              <p className="text-sm text-gray-600">
                 No spending recorded for this month yet.
               </p>
             </div>
