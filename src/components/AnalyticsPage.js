@@ -1078,7 +1078,7 @@ function AnalyticsPage({ transactions = [], onDateClick, autoOpenTracker = false
         scrollbar-width: none;
       }
     `}</style>
-    <div className="analytics-scroll-container h-full overflow-y-auto p-6 pb-24 space-y-6">
+    <div className="analytics-scroll-container h-full overflow-y-auto p-6 pb-24 space-y-4">
       {/* Header */}
       <div className="-mx-6 -mt-6 px-6 pt-10">
         <div className="flex justify-between items-end">
@@ -1106,7 +1106,7 @@ function AnalyticsPage({ transactions = [], onDateClick, autoOpenTracker = false
 
       {/* Progress Section */}
       <div 
-        className="rounded-[16px] px-6 pt-8 pb-10 relative overflow-hidden bg-white cursor-pointer active:opacity-95 transition-opacity"
+        className="rounded-[16px] px-6 pt-4 pb-10 relative overflow-hidden bg-white cursor-pointer active:opacity-95 transition-opacity -mt-2"
         onClick={() => {
           setStartDateInput(startDate);
           setTargetInput(target.toString());
@@ -1205,12 +1205,12 @@ function AnalyticsPage({ transactions = [], onDateClick, autoOpenTracker = false
       </div>
 
       {/* Tracker Calendar Section */}
-      <div className="bg-white rounded-[16px] p-6 shadow-sm -mx-6">
+      <div className="bg-white rounded-[16px] p-6 shadow-sm -mx-6 -mt-2">
         {renderTrackerContent()}
       </div>
 
       {/* Activity Section */}
-      <div className="bg-white rounded-[16px] p-6 shadow-sm -mx-6">
+      <div className="bg-white rounded-[16px] p-6 shadow-sm -mx-6 -mt-2">
         {renderMonthlySpending()}
       </div>
 
