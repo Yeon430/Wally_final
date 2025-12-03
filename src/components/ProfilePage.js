@@ -506,7 +506,7 @@ function ProfilePage() {
       {showEditModal && (
         <div className="absolute inset-0 bg-black bg-opacity-50 flex items-start justify-center z-50 p-4 pt-16">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-[calc(100%-2rem)] max-h-[calc(100%-2rem)] overflow-y-auto p-6 mt-4">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">프로필 편집</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-6">Edit Profile</h2>
             
             {/* 프로필 사진 */}
             <div className="flex flex-col items-center mb-6">
@@ -536,20 +536,20 @@ function ProfilePage() {
                 disabled={uploading}
                 className="mt-3 text-sm text-[#F35DC8] font-medium hover:text-[#E040B5] disabled:opacity-50"
               >
-                {uploading ? '업로드 중...' : '사진 변경'}
+                {uploading ? 'Uploading...' : 'Change Photo'}
               </button>
             </div>
 
             {/* 닉네임 입력 */}
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                닉네임
+                Nickname
               </label>
               <input
                 type="text"
                 value={nickname}
                 onChange={(e) => setNickname(e.target.value)}
-                placeholder="닉네임을 입력하세요"
+                placeholder="Enter nickname"
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F35DC8] focus:border-transparent"
                 maxLength={20}
               />
@@ -568,14 +568,14 @@ function ProfilePage() {
                 }}
                 className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors"
               >
-                취소
+                Cancel
               </button>
               <button
                 onClick={handleSaveProfile}
                 disabled={saving || !nickname.trim()}
                 className="flex-1 px-4 py-3 bg-[#F35DC8] text-white rounded-lg font-medium hover:bg-[#E040B5] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                {saving ? '저장 중...' : '저장'}
+                {saving ? 'Saving...' : 'Save'}
               </button>
             </div>
           </div>
