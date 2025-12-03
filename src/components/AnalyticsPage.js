@@ -345,6 +345,10 @@ function AnalyticsPage({ transactions = [], onDateClick, autoOpenTracker = false
   const dailyGoal = todayTimestamp > endTimestamp 
     ? Math.round(target / daysInPeriod)
     : Math.round(remainingBudget / remainingDays);
+
+  // Static daily goal for history consistency (Target / Total Days)
+  // This ensures that past days' colors don't change as the remaining budget fluctuates
+  const staticDailyGoal = Math.round(target / daysInPeriod);
   
   // Generate array of dates for DISPLAYED MONTH (can navigate to previous/next months)
   const currentMonth = displayMonth;
@@ -528,27 +532,36 @@ function AnalyticsPage({ transactions = [], onDateClick, autoOpenTracker = false
       });
     }
     
-    // Color logic: Only dates within goal period show colors
-    // If outside the goal period, mark as inactive
-    if (!isInGoalPeriod) {
-      activityData[index] = 'inactive';
-    } else if (dateTimestamp > todayTimestamp) {
+    // Color logic: Show colors for any date with spending, regardless of goal period
+    // Future dates are always gray
+    if (dateTimestamp > todayTimestamp) {
       // Within goal period but future date
-      activityData[index] = 'future';
-    } else if (daySpending > dailyGoal) {
-      // Within goal period, exceeded daily goal
-      activityData[index] = 'exceeded';
+      if (isInGoalPeriod) {
+        activityData[index] = 'future';
+      } else {
+        activityData[index] = 'inactive';
+      }
     } else if (daySpending > 0) {
-      // Within goal period, has spending but within goal
-      activityData[index] = 'good';
+      // Past/Today with spending: Color based on goal
+      if (daySpending > staticDailyGoal) {
+        activityData[index] = 'exceeded';
+      } else {
+        activityData[index] = 'good';
+      }
     } else {
-      // Within goal period, no spending (also good)
-      activityData[index] = 'good';
+      // Past/Today with NO spending
+      if (isInGoalPeriod) {
+        // Within goal period, no spending is good
+        activityData[index] = 'good';
+      } else {
+        // Outside goal period, no spending is inactive
+        activityData[index] = 'inactive';
+      }
     }
   });
 
   const goalStreak = (() => {
-    if (!dailyGoal || dailyGoal <= 0) return 0;
+    if (!staticDailyGoal || staticDailyGoal <= 0) return 0;
     const streakStartDate = new Date(today);
     streakStartDate.setHours(0, 0, 0, 0);
     let streak = 0;
@@ -556,7 +569,7 @@ function AnalyticsPage({ transactions = [], onDateClick, autoOpenTracker = false
     while (cursor.getTime() >= calendarStartDate.getTime()) {
       const key = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, '0')}-${String(cursor.getDate()).padStart(2, '0')}`;
       const spending = expensesByDate[key] || 0;
-      if (spending <= dailyGoal) {
+      if (spending <= staticDailyGoal) {
         streak += 1;
       } else {
         break;
@@ -580,7 +593,7 @@ function AnalyticsPage({ transactions = [], onDateClick, autoOpenTracker = false
       console.log(`Day ${day === 6 ? '7' : '8'} (index ${day}) - level:`, level, 'activityData:', activityData[day]);
     }
     switch(level) {
-      case 'future': return 'bg-[#F7F3F1]';
+      case 'future': return 'bg-gray-100';
       case 'exceeded': return 'bg-[#F35DC8]';
       case 'good': return 'bg-[#A4F982]';
       case 'inactive': return 'bg-gray-100';
@@ -590,7 +603,7 @@ function AnalyticsPage({ transactions = [], onDateClick, autoOpenTracker = false
   
   const getBackgroundColor = (level) => {
     switch(level) {
-      case 'future': return '#F7F3F1';
+      case 'future': return '#F3F4F6';
       case 'exceeded': return '#F35DC8';
       case 'good': return '#A4F982';
       case 'inactive': return '#E5E7EB';
@@ -637,6 +650,8 @@ function AnalyticsPage({ transactions = [], onDateClick, autoOpenTracker = false
       const dayIncome = incomesByDate[dateKey] || 0;
       
       const level = activityData[index] || 'inactive';
+      const isActiveDay = level === 'good' || level === 'exceeded';
+      
       if (dayNumber) {
         // dayStatusMap[dayNumber] = level; // This line is removed as per the edit hint
       }
@@ -647,7 +662,7 @@ function AnalyticsPage({ transactions = [], onDateClick, autoOpenTracker = false
           <div 
             className={`w-10 h-10 rounded-full flex items-center justify-center ${getColorClass(index)} transition-all relative ${isClickable ? 'hover:scale-110 cursor-pointer' : 'cursor-default'}`}
             style={{
-              ...(isInGoalPeriod && {
+              ...(isActiveDay && {
                 border: '2px solid rgba(17, 24, 39, 0.14)',
                 boxShadow: '0 0 10px rgba(15, 23, 42, 0.12), inset 0 0 0 1px rgba(255, 255, 255, 0.35)'
               })
@@ -664,7 +679,7 @@ function AnalyticsPage({ transactions = [], onDateClick, autoOpenTracker = false
               }
             }}
           >
-            <span className={`text-base font-medium ${getTextColor(index)}`}>{dayNumber}</span>
+            <span className={`text-base font-medium ${isInGoalPeriod ? 'text-black' : getTextColor(index)}`}>{dayNumber}</span>
           </div>
           <div className="mt-2 min-h-[24px] text-xs leading-tight text-center flex flex-col items-center justify-center">
             {daySpending > 0 && (
