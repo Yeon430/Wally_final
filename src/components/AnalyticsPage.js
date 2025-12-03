@@ -264,11 +264,12 @@ function AnalyticsPage({ transactions = [], onDateClick, autoOpenTracker = false
     return defaultMonth;
   });
 
-  useEffect(() => {
-    if (!yearsAvailable.includes(selectedYear) && yearsAvailable.length > 0) {
-      setSelectedYear(yearsAvailable[0]);
-    }
-  }, [yearsAvailable, selectedYear]);
+  // Allow navigation to any year, not just those with data
+  // useEffect(() => {
+  //   if (!yearsAvailable.includes(selectedYear) && yearsAvailable.length > 0) {
+  //     setSelectedYear(yearsAvailable[0]);
+  //   }
+  // }, [yearsAvailable, selectedYear]);
 
   const monthOptions = useMemo(() => {
     // Always show all 12 months (0-11: January to December)
@@ -944,8 +945,45 @@ function AnalyticsPage({ transactions = [], onDateClick, autoOpenTracker = false
       <div className="space-y-4">
         {/* Monthly Header */}
         <div className="flex flex-col items-start gap-2 mb-4">
-          <LoadingIcon size={28} strokeWidth={2} />
-          <h2 className="text-3xl font-bold text-black">Monthly</h2>
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => {
+                let newMonth = safeMonthIndex - 1;
+                let newYear = selectedYear;
+                if (newMonth < 0) {
+                  newMonth = 11;
+                  newYear -= 1;
+                }
+                setSelectedMonthIndex(newMonth);
+                setSelectedYear(newYear);
+              }}
+              className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M15 18L9 12L15 6" stroke="black" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+            <h2 className="text-3xl font-bold text-black">
+              {new Date(selectedYear, safeMonthIndex).toLocaleString('en-US', { month: 'long' })}
+            </h2>
+            <button 
+              onClick={() => {
+                let newMonth = safeMonthIndex + 1;
+                let newYear = selectedYear;
+                if (newMonth > 11) {
+                  newMonth = 0;
+                  newYear += 1;
+                }
+                setSelectedMonthIndex(newMonth);
+                setSelectedYear(newYear);
+              }}
+              className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M9 18L15 12L9 6" stroke="black" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+          </div>
         </div>
         
         {/* Amount outside black background */}
@@ -956,41 +994,6 @@ function AnalyticsPage({ transactions = [], onDateClick, autoOpenTracker = false
         </div>
         
         <div className="rounded-[16px] px-6 pt-6 pb-6 relative overflow-hidden bg-gray-100">
-          <div className="flex items-center gap-4 text-sm font-semibold text-gray-600 mb-4">
-            <div className="relative">
-              <select
-                value={selectedYear}
-                onChange={(e) => setSelectedYear(parseInt(e.target.value, 10))}
-                className="appearance-none bg-transparent pr-6 focus:outline-none cursor-pointer text-black"
-              >
-                {yearsAvailable.map((year) => (
-                  <option key={year} value={year} className="bg-white text-black">
-                    {year}
-                  </option>
-                ))}
-              </select>
-              <span className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-gray-500 text-[10px]">
-                ▼
-              </span>
-            </div>
-            <div className="relative">
-              <select
-                value={safeMonthIndex}
-                onChange={(e) => setSelectedMonthIndex(parseInt(e.target.value, 10))}
-                className="appearance-none bg-transparent pr-6 focus:outline-none cursor-pointer text-black"
-              >
-                {monthOptions.map((idx) => (
-                  <option key={idx} value={idx} className="bg-white text-black">
-                    {new Date(selectedYear, idx, 1).toLocaleString('en-US', { month: 'long' })}
-                  </option>
-                ))}
-              </select>
-              <span className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-gray-500 text-[10px]">
-                ▼
-              </span>
-            </div>
-          </div>
-
           {selectedTotal > 0 ? (
             <>
               {/* Pie Chart */}
