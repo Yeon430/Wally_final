@@ -1106,7 +1106,7 @@ function AnalyticsPage({ transactions = [], onDateClick, autoOpenTracker = false
 
       {/* Progress Section */}
       <div 
-        className="rounded-[16px] px-6 pt-8 pb-10 relative overflow-hidden bg-black cursor-pointer active:opacity-95 transition-opacity"
+        className="rounded-[16px] px-6 pt-8 pb-10 relative overflow-hidden bg-white cursor-pointer active:opacity-95 transition-opacity"
         onClick={() => {
           setStartDateInput(startDate);
           setTargetInput(target.toString());
@@ -1148,6 +1148,14 @@ function AnalyticsPage({ transactions = [], onDateClick, autoOpenTracker = false
                 />
               </mask>
             </defs>
+            {/* Gray background for the track */}
+            <path
+              d="M 20 180 A 150 150 0 0 1 320 180"
+              fill="none"
+              stroke="#E5E7EB"
+              strokeWidth="28"
+              strokeLinecap="square"
+            />
             <path
               d="M 20 180 A 150 150 0 0 1 320 180"
               fill="none"
@@ -1169,14 +1177,14 @@ function AnalyticsPage({ transactions = [], onDateClick, autoOpenTracker = false
             className="absolute left-1/2 text-center w-full flex flex-col items-center"
             style={{ top: '72%', transform: 'translate(-50%, -50%)' }}
           >
-            <p className="text-xs text-white/70 mb-1">${actualSpendingToDate.toFixed(2)} Spent</p>
-            <p className="text-4xl font-bold text-white mb-1">{spendingPercentage}%</p>
-            <p className="text-sm text-white/70">Target • ${target}</p>
+            <p className="text-xs text-gray-500 mb-1">${actualSpendingToDate.toFixed(2)} Spent</p>
+            <p className="text-4xl font-bold text-black mb-1">{spendingPercentage}%</p>
+            <p className="text-sm text-gray-500">Target • ${target}</p>
           </div>
         </div>
         
         <div
-          className="flex justify-between text-xs text-white/60 mx-auto"
+          className="flex justify-between text-xs text-gray-400 mx-auto"
           style={{
             width: '100%',
             maxWidth: '300px',
@@ -1186,11 +1194,11 @@ function AnalyticsPage({ transactions = [], onDateClick, autoOpenTracker = false
           }}
         >
           <div>
-            <p className="font-semibold text-white">{dateRange.start}</p>
+            <p className="font-semibold text-black">{dateRange.start}</p>
             <p>Start</p>
           </div>
           <div style={{ textAlign: 'right' }}>
-            <p className="font-semibold text-white">{dateRange.end}</p>
+            <p className="font-semibold text-black">{dateRange.end}</p>
             <p>End</p>
           </div>
         </div>
