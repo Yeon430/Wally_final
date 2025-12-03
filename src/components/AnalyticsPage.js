@@ -659,9 +659,9 @@ function AnalyticsPage({ transactions = [], onDateClick, autoOpenTracker = false
       const baseColor = getBackgroundColor(level);
       
       days.push(
-        <div key={index} className="flex flex-col items-center justify-center relative">
+        <div key={index} className="flex flex-col items-center justify-start relative min-h-[90px]">
           <div 
-            className={`w-10 h-10 rounded-full flex items-center justify-center ${getColorClass(index)} transition-all relative ${isClickable ? 'hover:scale-110 cursor-pointer' : 'cursor-default'}`}
+            className={`w-10 h-10 rounded-full flex items-center justify-center ${getColorClass(index)} transition-all relative ${isClickable ? 'hover:scale-110 cursor-pointer' : 'cursor-default'} mb-1`}
             style={{
               ...(isActiveDay && {
                 border: '2px solid rgba(17, 24, 39, 0.14)',
@@ -682,14 +682,14 @@ function AnalyticsPage({ transactions = [], onDateClick, autoOpenTracker = false
           >
             <span className={`text-base font-medium ${isInGoalPeriod ? 'text-black' : getTextColor(index)}`}>{dayNumber}</span>
           </div>
-          <div className="mt-2 min-h-[24px] text-xs leading-tight text-center flex flex-col items-center justify-center">
+          <div className="flex flex-col items-center justify-start gap-0.5 text-[10px] leading-tight text-center w-full">
             {daySpending > 0 && (
-              <div className="font-medium" style={{ color: '#F35DC8' }}>
+              <div className="font-medium w-full px-0.5 truncate" style={{ color: '#F35DC8' }}>
                 -${Math.round(daySpending)}
               </div>
             )}
             {dayIncome > 0 && (
-              <div className="text-emerald-600 font-medium">
+              <div className="text-emerald-600 font-medium w-full px-0.5 truncate">
                 +${Math.round(dayIncome)}
               </div>
             )}
@@ -776,17 +776,6 @@ function AnalyticsPage({ transactions = [], onDateClick, autoOpenTracker = false
       
       <div className="grid grid-cols-7 gap-3 mb-6">
         {renderCalendar()}
-      </div>
-      
-      <div className="flex justify-center gap-6 text-base">
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded-full bg-[#F35DC8]"></div>
-          <span className="text-gray-700 font-medium">Over Budget</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded-full bg-[#A4F982]"></div>
-          <span className="text-gray-700 font-medium">On Budget</span>
-        </div>
       </div>
     </>
   );
