@@ -722,6 +722,9 @@ function AnalyticsPage({ transactions = [], onDateClick, autoOpenTracker = false
           </div>
         </div>
         <p className="text-base text-gray-600">Daily Goal: ${formatCurrency(Number.isFinite(dailyGoal) ? dailyGoal : 0)}</p>
+        <p className="text-base text-gray-600 mt-1">
+          Target Period: {dateRange.start} - {dateRange.end}
+        </p>
       </div>
       <div className="grid grid-cols-7 gap-3 mb-4">
         {weekDays.map((day, index) => (
@@ -1092,7 +1095,7 @@ function AnalyticsPage({ transactions = [], onDateClick, autoOpenTracker = false
               setTargetInput(target.toString());
               setShowModal(true);
             }}
-            className="w-10 h-10 rounded-full bg-black text-white flex items-center justify-center hover:bg-gray-800 transition-colors flex-shrink-0 mb-1"
+            className="w-10 h-10 rounded-full bg-gray-100 text-black flex items-center justify-center hover:bg-gray-200 transition-colors flex-shrink-0 mb-1"
           >
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
               <circle cx="6.25" cy="6.25" r="1.75" stroke="currentColor" strokeWidth="1.6" />
