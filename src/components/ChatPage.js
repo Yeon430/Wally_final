@@ -1938,7 +1938,7 @@ User message: ${userMessage}`;
                 <p className="text-xs font-bold text-black" style={{fontFamily: 'Aldrich, sans-serif'}}>
                   {aiConfig?.name}
                 </p>
-              </div>
+                </div>
               <div className="flex flex-col items-start gap-1">
                 <div className="rounded-2xl rounded-tl-none p-3.5 bg-white/50 shadow-[0px_0px_2px_0px_rgba(57,57,57,0.25)]">
                   <p className="text-black text-base leading-relaxed whitespace-pre-wrap" style={{fontFamily: 'Aldrich, Noto Sans KR, sans-serif'}}>{message.text}</p>

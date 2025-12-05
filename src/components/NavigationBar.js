@@ -77,6 +77,7 @@ function NavigationBar({ currentPage, onNavigate }) {
           aria-label={item.label}
         >
           {item.icon(currentPage === item.id, item.iconSize)}
+          <span className="nav-label">{item.label}</span>
         </button>
       ))}
     </div>

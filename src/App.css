@@ -20,7 +20,7 @@ body {
 
 .phone-frame {
   width: 100%;
-  max-width: 800px;
+  max-width: 1000px;
   height: 100vh;
   background: #ffffff;
   border-radius: 0;
@@ -39,6 +39,13 @@ body {
   
   .phone-frame {
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+  }
+}
+
+/* 데스크탑 사이드바 레이아웃 대응 */
+@media (min-width: 769px) {
+  .phone-content {
+    padding-left: 240px; /* 사이드바 너비만큼 여백 확보 */
   }
 }
 
@@ -95,6 +102,7 @@ body {
     height: 100% !important;
     flex: 1 !important;
     background: #ffffff !important;
+    padding-left: 0; /* 모바일에서는 패딩 제거 */
   }
 }
 
@@ -253,6 +261,7 @@ html.mobile-device .phone-content {
   height: 100% !important;
   flex: 1 !important;
   background: #ffffff !important;
+  padding-left: 0 !important; /* 모바일에서는 패딩 강제 제거 */
 }
 
 /* iOS Safe Area 지원 (노치 등) */
@@ -281,4 +290,3 @@ html.mobile-device .phone-content {
     padding-bottom: env(safe-area-inset-bottom) !important;
   }
 }
-

@@ -30,6 +30,10 @@
   transition: all 0.3s ease;
 }
 
+.nav-label {
+  display: none;
+}
+
 .nav-item:hover {
   transform: translateY(-2px);
 }
@@ -47,3 +51,65 @@
   transform: scale(1.15);
 }
 
+/* Desktop Sidebar Styles */
+@media (min-width: 769px) {
+  .navigation-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    transform: none;
+    width: 240px;
+    max-width: none;
+    height: 100%;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    padding: 80px 16px 20px 16px;
+    background: #ffffff; /* phone-frame 배경과 일치 */
+    border: none;
+    border-right: 1px solid rgba(0, 0, 0, 0.05);
+    border-radius: 0;
+    box-shadow: none;
+    gap: 12px;
+  }
+
+  .nav-item {
+    width: 100%;
+    height: auto;
+    padding: 12px 16px;
+    justify-content: flex-start;
+    gap: 12px;
+    border-radius: 12px;
+  }
+  
+  .nav-item:hover {
+    transform: none;
+    background: rgba(0, 0, 0, 0.03);
+  }
+
+  .nav-label {
+    display: block;
+    font-size: 15px;
+    font-weight: 600;
+    color: #666;
+  }
+
+  .nav-item.active .nav-label {
+    color: #F35DC8;
+  }
+
+  .nav-item.active {
+    background: rgba(243, 93, 200, 0.1);
+    box-shadow: none;
+  }
+  
+  .nav-item svg {
+    width: 24px !important;
+    height: 24px !important;
+  }
+  
+  .nav-item.active svg {
+    transform: none;
+  }
+}

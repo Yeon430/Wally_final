@@ -1261,7 +1261,8 @@ function SpendingPage({ transactions, setTransactions, onDeleteTransaction }) {
             }}
           ></div>
           <div 
-            className="absolute inset-x-0 bottom-0 bg-white rounded-t-[38px] z-[1101] flex flex-col top-[5%] md:top-[18%]"
+            className="absolute inset-x-0 bottom-0 bg-white rounded-t-[38px] z-[1101] flex flex-col"
+            style={{ top: '18%' }}
           >
             <div className="overflow-y-auto flex-1" ref={modalContentRef}>
               <div className="px-6 pt-6 pb-16">
@@ -1273,7 +1274,7 @@ function SpendingPage({ transactions, setTransactions, onDeleteTransaction }) {
               <div className="grid grid-cols-2 gap-2 mb-4">
                 <button
                   onClick={() => setTransactionType('income')}
-                  className={`py-2.5 rounded-lg text-sm transition ${
+                  className={`py-3 rounded-lg text-sm transition ${
                     transactionType === 'income'
                       ? 'bg-[#A4F982] text-black font-bold shadow-sm'
                       : 'bg-gray-100 text-black hover:bg-gray-200 font-medium'
@@ -1283,7 +1284,7 @@ function SpendingPage({ transactions, setTransactions, onDeleteTransaction }) {
                 </button>
                 <button
                   onClick={() => setTransactionType('expense')}
-                  className={`py-2.5 rounded-lg text-sm transition ${
+                  className={`py-3 rounded-lg text-sm transition ${
                     transactionType === 'expense'
                       ? 'bg-[#F35DC8] text-white font-bold shadow-sm'
                       : 'bg-gray-100 text-black hover:bg-gray-200 font-medium'
@@ -1297,7 +1298,7 @@ function SpendingPage({ transactions, setTransactions, onDeleteTransaction }) {
                   type="date"
                   value={transactionDate || formatDateToYYYYMMDD(new Date())}
                   onChange={(e) => setTransactionDate(e.target.value)}
-                  className="w-full bg-gray-100 rounded-lg px-4 py-3 text-black placeholder-gray-400 border-none outline-none text-base"
+                  className="w-full bg-gray-100 rounded-lg px-4 py-4 text-black placeholder-gray-400 border-none outline-none text-base"
                 />
               </div>
               <div className="relative">
@@ -1306,7 +1307,7 @@ function SpendingPage({ transactions, setTransactions, onDeleteTransaction }) {
                   placeholder="Amount"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  className="w-full bg-gray-100 rounded-lg pr-10 pl-4 py-3 text-black placeholder-gray-400 border-none outline-none text-base"
+                  className="w-full bg-gray-100 rounded-lg pr-10 pl-4 py-4 text-black placeholder-gray-400 border-none outline-none text-base"
                   min="0"
                   step="10"
                 />
@@ -1365,7 +1366,7 @@ function SpendingPage({ transactions, setTransactions, onDeleteTransaction }) {
                             <button
                               key={catName}
                               onClick={() => setCategory(catName)}
-                              className={`py-2.5 rounded-lg font-medium text-sm transition flex items-center justify-center gap-2 ${
+                              className={`py-3 rounded-lg font-medium text-sm transition flex items-center justify-center gap-2 ${
                                 category === catName
                                   ? 'bg-black text-white'
                                   : 'bg-gray-100 text-black hover:bg-gray-200'
@@ -1386,7 +1387,7 @@ function SpendingPage({ transactions, setTransactions, onDeleteTransaction }) {
                   placeholder="Description"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full bg-gray-100 rounded-lg px-4 py-3 text-black placeholder-gray-400 border-none outline-none text-base"
+                  className="w-full bg-gray-100 rounded-lg px-4 py-4 text-black placeholder-gray-400 border-none outline-none text-base"
                 />
               </div>
               <div>
@@ -1394,7 +1395,7 @@ function SpendingPage({ transactions, setTransactions, onDeleteTransaction }) {
                   placeholder="Additional notes (optional)"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  className="w-full bg-gray-100 rounded-lg px-4 py-3 text-black placeholder-gray-400 border-none outline-none text-base resize-none"
+                  className="w-full bg-gray-100 rounded-lg px-4 py-4 text-black placeholder-gray-400 border-none outline-none text-base resize-none"
                   rows="3"
                 />
               </div>
@@ -1410,7 +1411,7 @@ function SpendingPage({ transactions, setTransactions, onDeleteTransaction }) {
                       <button
                         key={m.value}
                         onClick={() => setMood(m.value)}
-                        className={`flex-1 py-2.5 rounded-lg font-medium text-xl transition ${
+                        className={`flex-1 py-3 rounded-lg font-medium text-xl transition ${
                           mood === m.value
                           ? 'bg-black text-white'
                           : 'bg-gray-100 text-black hover:bg-gray-200'
@@ -1435,14 +1436,14 @@ function SpendingPage({ transactions, setTransactions, onDeleteTransaction }) {
                     setMood(null);
                     setTransactionType('expense');
                   }}
-                  className="flex-1 bg-gray-200 text-black py-3.5 rounded-lg font-medium text-base"
+                  className="flex-1 bg-gray-200 text-black py-4 rounded-lg font-medium text-base"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleAddTransaction}
                   disabled={!amount.trim() || parseFloat(amount) <= 0 || savingTransaction}
-                  className="flex-1 bg-black text-white py-3.5 rounded-lg font-medium text-base disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 bg-black text-white py-4 rounded-lg font-medium text-base disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {savingTransaction ? 'Saving...' : (editingTransaction ? 'Save' : 'Add')}
                 </button>
