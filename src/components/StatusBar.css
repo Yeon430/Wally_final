@@ -22,7 +22,7 @@
   top: 0;
   width: 160px;
   height: 30px;
-  display: flex;
+  display: none;
   justify-content: center;
   align-items: center;
 }
@@ -32,6 +32,7 @@
   height: 100%;
   background: #000000;
   border-radius: 0 0 20px 20px;
+  display: none;
 }
 
 /* 모바일에서 노치 제거 */
