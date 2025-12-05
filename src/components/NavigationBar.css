@@ -17,6 +17,10 @@
   z-index: 100;
 }
 
+.nav-logo {
+  display: none;
+}
+
 .nav-item {
   display: flex;
   align-items: center;
@@ -65,13 +69,36 @@
     flex-direction: column;
     justify-content: flex-start;
     align-items: stretch;
-    padding: 80px 16px 20px 16px;
-    background: #ffffff; /* phone-frame 배경과 일치 */
+    padding: 40px 16px 20px 16px;
+    background: #ffffff;
     border: none;
     border-right: 1px solid rgba(0, 0, 0, 0.05);
     border-radius: 0;
     box-shadow: none;
     gap: 12px;
+  }
+
+  .nav-logo {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    margin-bottom: 40px;
+    padding: 0 10px;
+    gap: 8px; /* 간격 16px -> 8px로 축소 */
+  }
+
+  .nav-logo img {
+    width: 48px; /* 텍스트 크기에 맞춰 아이콘 크기 조정 */
+    height: 48px;
+    object-fit: contain;
+  }
+
+  .logo-text {
+    font-family: 'Alata', sans-serif;
+    font-size: 28px; /* 폰트 크기 변경 */
+    color: #000000;
+    margin-bottom: 6px; /* 폰트 크기에 맞춰 여백 조정 */
+    line-height: 1;
   }
 
   .nav-item {

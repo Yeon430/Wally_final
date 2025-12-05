@@ -69,6 +69,10 @@ function NavigationBar({ currentPage, onNavigate }) {
 
   return (
     <div className="navigation-bar">
+      <div className="nav-logo">
+        <img src="/sidebar-icon.png" alt="Wally Logo" />
+        <span className="logo-text">wally</span>
+      </div>
       {navItems.map((item) => (
         <button
           key={item.id}
