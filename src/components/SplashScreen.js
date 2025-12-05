@@ -36,9 +36,9 @@ function SplashScreen() {
 
       
 
-      // 눈 크기: 이미지 너비의 약 22%
+      // 눈 크기: 이미지 너비의 약 22% -> 24%로 조금 더 크게
 
-      const eyeSize = imgWidth * 0.25;
+      const eyeSize = imgWidth * 0.27;
 
       
 
@@ -46,7 +46,7 @@ function SplashScreen() {
 
       const eyeTop = imgHeight * 0.31; // 상단 31% 위치
 
-      const eyeCenterX = imgWidth * 0.66; // 약간 오른쪽
+      const eyeCenterX = imgWidth * 0.66; // 다시 66%로 원복 (왼쪽으로 이동)
 
       const eyeGap = imgWidth * 0.05; // 눈 사이 간격 (5% - 거의 붙어있음)
 
@@ -165,105 +165,72 @@ function SplashScreen() {
     <>
 
       <style>{`
-        /* 모바일 전체 화면 스플래시 */
-        @media (max-width: 768px), (hover: none) and (pointer: coarse) {
-          .splash-container .phone-frame {
-            width: 100% !important;
-            height: 100vh !important;
-            height: 100dvh !important;
-            border-radius: 0 !important;
-            box-shadow: none !important;
-            margin: 0 !important;
-            padding: 0 !important;
-          }
-
-          .splash-container .phone-content {
-            width: 100% !important;
-            height: 100% !important;
-            min-height: 100vh !important;
-            min-height: 100dvh !important;
-          }
-
-          .splash-container img {
-            max-width: 95vw !important;
-            max-height: 95vh !important;
-            width: auto !important;
-            height: auto !important;
-          }
-        }
-
-        body.mobile-device .splash-container .phone-frame,
-        html.mobile-device .splash-container .phone-frame {
-          width: 100% !important;
-          height: 100vh !important;
-          height: 100dvh !important;
-          border-radius: 0 !important;
-          box-shadow: none !important;
+        /* 전역 스타일 강제 오버라이드 */
+        body, html, #root {
+          background-color: #A6FF82 !important;
           margin: 0 !important;
           padding: 0 !important;
+          overflow: hidden !important;
         }
 
-        body.mobile-device .splash-container .phone-content,
-        html.mobile-device .splash-container .phone-content {
+        .splash-container {
+          padding: 0 !important;
+          margin: 0 !important;
+          width: 100vw !important;
+          height: 100vh !important;
+          height: 100dvh !important;
+          background-color: #A6FF82 !important;
+          position: fixed !important;
+          top: 0 !important;
+          left: 0 !important;
+          z-index: 99999 !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+        }
+
+        .splash-container .phone-frame {
           width: 100% !important;
           height: 100% !important;
-          min-height: 100vh !important;
-          min-height: 100dvh !important;
+          max-width: none !important;
+          max-height: none !important;
+          border-radius: 0 !important;
+          box-shadow: none !important;
+          background: #A6FF82 !important;
+          margin: 0 !important;
+          border: none !important;
         }
 
-        body.mobile-device .splash-container img,
-        html.mobile-device .splash-container img {
-          max-width: 95vw !important;
-          max-height: 95vh !important;
+        .splash-container .phone-content {
+          background: #A6FF82 !important;
+          width: 100% !important;
+          height: 100% !important;
+        }
+
+        .splash-container img {
+          max-width: 100vw !important;
+          max-height: 100vh !important;
           width: auto !important;
           height: auto !important;
+          object-fit: contain !important;
         }
       `}</style>
 
-      <div className="app-container splash-container" style={{ zIndex: 9999 }}>
-
-        <div className="phone-frame" style={{ background: '#9DFF00', overflow: 'hidden' }}>
-
-          <div 
-
-            className="phone-content flex items-center justify-center"
-
-            style={{ 
-
-              backgroundColor: '#9DFF00',
-
-              position: 'relative',
-
-              overflow: 'hidden'
-
-            }}
-
-          >
-
+      <div className="app-container splash-container">
+        <div className="phone-frame">
+          <div className="phone-content flex items-center justify-center">
             <div 
-
               ref={containerRef}
-
               className="relative inline-block"
-
               style={{ position: 'relative', display: 'inline-block' }}
-
             >
-
                 <img 
-
                   ref={imageRef}
-
-                  src="/splash.png" 
-
+                  src="/full3.png" 
                   alt="Wally" 
-
-                  className="w-auto h-auto max-w-[80vw] max-h-[80vh] md:max-w-[80vw] md:max-h-[80vh] object-contain"
-
+                  className="w-auto h-auto"
                   style={{ display: 'block', position: 'relative', zIndex: 5 }}
-
                   onLoad={() => setImageLoaded(true)}
-
                 />
 
             {/* 눈 깜빡임 효과 */}
@@ -314,7 +281,7 @@ function SplashScreen() {
 
                         zIndex: 20,
 
-                        backgroundColor: '#9DFF00',
+                        backgroundColor: '#A6FF82',
 
                         borderTopLeftRadius: '50%',
 
@@ -350,7 +317,7 @@ function SplashScreen() {
 
                         zIndex: 20,
 
-                        backgroundColor: '#9DFF00',
+                        backgroundColor: '#A6FF82',
 
                         borderBottomLeftRadius: '50%',
 
@@ -386,7 +353,7 @@ function SplashScreen() {
 
                         zIndex: 20,
 
-                        backgroundColor: '#9DFF00',
+                        backgroundColor: '#A6FF82',
 
                         borderTopLeftRadius: '50%',
 
@@ -422,7 +389,7 @@ function SplashScreen() {
 
                         zIndex: 20,
 
-                        backgroundColor: '#9DFF00',
+                        backgroundColor: '#A6FF82',
 
                         borderBottomLeftRadius: '50%',
 
