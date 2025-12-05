@@ -15,7 +15,7 @@ const AI_CONFIG = {
     id: 'catty',
     name: 'Cattyy',
     description: 'Your brutally honest broke friend',
-    avatar: '/catty.png',
+    avatar: '/catty-profile.png',
     gradient: 'from-purple-400 to-pink-400',
     initialMessage: "Hey! I'm Catty 😺 Got something you want to buy? Tell me. I'll help you put out that burning wallet. Nicely, of course~ 💸"
   },
@@ -23,7 +23,7 @@ const AI_CONFIG = {
     id: 'futureme',
     name: 'Future Me',
     description: 'Your future self from 2034',
-    avatar: '/future.png',
+    avatar: '/future-profile.png',
     gradient: 'from-blue-400 to-cyan-400',
     initialMessage: "Hey... it's me, you from 2034 ⏰ I traveled back in time to warn you. Every purchase you make now affects my future. Let's make sure I don't end up broke, okay? 🕐"
   },
@@ -31,7 +31,7 @@ const AI_CONFIG = {
     id: 'advisor',
     name: 'Advisor',
     description: 'Your smart spending analyst',
-    avatar: '/catty.png', // Placeholder - 나중에 advisor 전용 이미지로 교체 가능
+    avatar: '/advisor-profile.png',
     gradient: 'from-green-400 to-emerald-400',
     initialMessage: "Hi! I'm your spending advisor 📊 I analyze your spending patterns and provide insights to help you make better financial decisions. Ask me anything about your spending habits!"
   }
@@ -1926,54 +1926,56 @@ User message: ${userMessage}`;
           const uniqueKey = `${message.id}_${message.type}_${index}`;
           
           return isAIMessage ? (
-            <div key={uniqueKey} className="flex gap-3">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0`} style={{background: '#D9D9D9'}}>
-                <div className="w-full h-full rounded-full flex items-center justify-center overflow-hidden">
+            <div key={uniqueKey} className="flex flex-col gap-1 max-w-[80%]">
+              <div className="flex items-center gap-2 ml-1">
+                <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden bg-[#D9D9D9]">
                   <img
                     src={aiConfig?.avatar}
                     alt={aiConfig?.name || 'AI'}
                     className="w-full h-full object-cover"
                   />
                 </div>
-              </div>
-              <div className="flex-1">
-                <p className="text-xs font-bold text-black ml-1 mb-1" style={{fontFamily: 'Aldrich, sans-serif'}}>
+                <p className="text-xs font-bold text-black" style={{fontFamily: 'Aldrich, sans-serif'}}>
                   {aiConfig?.name}
                 </p>
-                <div className="rounded-xl p-3 inline-block max-w-xs" style={{background: 'rgba(255, 255, 255, 0.5)', boxShadow: '0px 0px 2px 0px rgba(57, 57, 57, 0.25)'}}>
-                  <p className="text-black text-base leading-relaxed" style={{fontFamily: 'Aldrich, Noto Sans KR, sans-serif'}}>{message.text}</p>
+              </div>
+              <div className="flex flex-col items-start gap-1">
+                <div className="rounded-2xl rounded-tl-none p-3.5 bg-white/50 shadow-[0px_0px_2px_0px_rgba(57,57,57,0.25)]">
+                  <p className="text-black text-base leading-relaxed whitespace-pre-wrap" style={{fontFamily: 'Aldrich, Noto Sans KR, sans-serif'}}>{message.text}</p>
                 </div>
-                <p className="text-xs text-black opacity-40 mt-1 ml-2">{message.time}</p>
+                <p className="text-[10px] text-black/40 ml-1">{message.time}</p>
               </div>
             </div>
           ) : (
-            <div key={uniqueKey} className="flex gap-3 justify-end">
-              <div className="flex-1 text-right">
-                <div className="p-3 inline-block max-w-xs" style={{background: 'rgba(255, 0, 182, 0.3)', boxShadow: '0px 0px 2px 0px rgba(57, 57, 57, 0.25)', borderRadius: '20px 0px 20px 20px'}}>
-                  <p className="text-black text-base leading-normal text-right" style={{fontFamily: 'Aldrich, sans-serif'}}>{message.text}</p>
+            <div key={uniqueKey} className="flex justify-end mb-4">
+              <div className="flex flex-col items-end gap-1 max-w-[80%]">
+                <div className="rounded-2xl rounded-tr-none px-4 py-2 bg-[rgba(255,0,182,0.3)] shadow-[0px_0px_2px_0px_rgba(57,57,57,0.25)]">
+                  <p className="text-black text-base leading-relaxed whitespace-pre-wrap text-left" style={{fontFamily: 'Aldrich, Noto Sans KR, sans-serif'}}>{message.text}</p>
                 </div>
-                <p className="text-xs text-black opacity-40 mt-1 mr-2">{message.time}</p>
+                <p className="text-[10px] text-black/40 mr-1">{message.time}</p>
               </div>
             </div>
           );
         })}
         {isLoading && Object.keys(aiEnabled).filter(aiId => aiEnabled[aiId]).map((aiId) => (
-          <div key={aiId} className="flex gap-3">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0`} style={{background: '#D9D9D9'}}>
-              <div className="w-full h-full rounded-full flex items-center justify-center overflow-hidden">
+          <div key={aiId} className="flex flex-col gap-1 max-w-[80%]">
+            <div className="flex items-center gap-2 ml-1">
+              <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden bg-[#D9D9D9]">
                 <img
                   src={AI_CONFIG[aiId].avatar}
                   alt={AI_CONFIG[aiId].name}
                   className="w-full h-full object-cover"
                 />
               </div>
-            </div>
-            <div className="flex-1">
-              <p className="text-xs font-bold text-black ml-1 mb-1" style={{fontFamily: 'Aldrich, sans-serif'}}>
+              <p className="text-xs font-bold text-black" style={{fontFamily: 'Aldrich, sans-serif'}}>
                 {AI_CONFIG[aiId].name}
               </p>
-              <div className="rounded-xl p-3 inline-block" style={{background: 'rgba(255, 255, 255, 0.5)', boxShadow: '0px 0px 2px 0px rgba(57, 57, 57, 0.25)'}}>
-                <p className="text-black text-base leading-relaxed">Thinking...</p>
+            </div>
+            <div className="rounded-2xl rounded-tl-none p-3.5 bg-white/50 shadow-[0px_0px_2px_0px_rgba(57,57,57,0.25)] inline-block">
+              <div className="flex gap-1">
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
               </div>
             </div>
           </div>
