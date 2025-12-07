@@ -120,23 +120,47 @@ function AuthPage() {
   const primaryLabel = loading ? 'Loading...' : 'Create an Account';
 
   return (
-    <div className="min-h-screen bg-[#F6F6F8] flex items-center justify-center px-6 py-10">
-      <div className="w-full max-w-sm bg-white border border-gray-200 rounded-[32px] shadow-[0_30px_60px_rgba(15,23,42,0.08)] px-8 pt-12 pb-10 relative overflow-hidden">
-        <div className="space-y-8">
-          <div className="space-y-4">
-            <div className="inline-flex items-center justify-start mb-1">
+    <div className="min-h-screen bg-[#F6F6F8] flex items-center justify-center p-4">
+      <div className="w-full max-w-sm md:max-w-5xl bg-white border border-gray-200 rounded-[32px] shadow-[0_30px_60px_rgba(15,23,42,0.08)] relative overflow-hidden flex flex-col md:flex-row">
+        
+        {/* Desktop Branding Section */}
+        <div className="hidden md:flex md:w-1/2 bg-black items-center justify-center p-12 relative overflow-hidden">
+          <div className="absolute inset-0 opacity-20">
+            <div className="absolute top-[-50%] left-[-50%] w-[200%] h-[200%] bg-[radial-gradient(circle,rgba(196,255,29,0.3)_0%,transparent_70%)]"></div>
+          </div>
+          
+          <div className="relative z-10 flex flex-col items-center text-center">
+            <div className="mb-8 flex items-center justify-center">
               <img
                 src={wallyLogo}
                 alt="Wally mascot"
-                className="h-8 w-auto object-contain"
-                draggable="false"
+                className="h-28 w-auto object-contain"
               />
             </div>
-            <div>
-              <h1 className="text-[24px] font-medium text-black tracking-tight">{heading}</h1>
-              <p className="mt-2 text-[15px] text-gray-400 font-normal">{subheading}</p>
-            </div>
+            <h2 className="text-4xl font-bold text-white mb-4" style={{ fontFamily: 'Alata, sans-serif' }}>wally</h2>
+            <p className="text-gray-400 text-lg max-w-xs leading-relaxed">
+              Smart financial tracking with your AI assistant.
+            </p>
           </div>
+        </div>
+
+        {/* Login Form Section */}
+        <div className="w-full md:w-1/2 px-8 pt-12 pb-10 md:p-12 md:flex md:flex-col md:justify-center bg-white">
+          <div className="space-y-8">
+            <div className="space-y-4">
+              <div className="inline-flex items-center justify-start mb-1 md:hidden">
+                <img
+                  src={wallyLogo}
+                  alt="Wally mascot"
+                  className="h-8 w-auto object-contain"
+                  draggable="false"
+                />
+              </div>
+              <div>
+                <h1 className="text-[24px] font-medium text-black tracking-tight">{heading}</h1>
+                <p className="mt-2 text-[15px] text-gray-400 font-normal">{subheading}</p>
+              </div>
+            </div>
 
           {error && (
             <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
@@ -288,9 +312,10 @@ function AuthPage() {
             </button>
           </div>
 
-          <div className="pt-8 text-center text-xs uppercase tracking-[0.4em] text-gray-300">
+          <div className="pt-8 text-center text-xs uppercase tracking-[0.4em] text-gray-300 md:hidden">
             wally
           </div>
+        </div>
         </div>
       </div>
     </div>
